@@ -1,0 +1,73 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Registered user profile and metadata",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "description": "User email address" },
+        "displayName": { "type": "string", "description": "Display name" },
+        "photoURL": { "type": "string", "description": "Avatar photo URL" },
+        "role": { "type": "string", "description": "User role: customer or admin" },
+        "wishlist": { "type": "array", "description": "Saved product IDs" },
+        "createdAt": { "type": "string", "description": "Timestamp of creation" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Product": {
+      "title": "Product Item",
+      "description": "Store inventory product item",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Product ID" },
+        "name": { "type": "string", "description": "Product name" },
+        "price": { "type": "number", "description": "Product price in USD" },
+        "originalPrice": { "type": "number", "description": "Original MSRP price" },
+        "category": { "type": "string", "description": "Product category" },
+        "stock": { "type": "number", "description": "Available stock count" },
+        "images": { "type": "array", "description": "Image URLs" },
+        "description": { "type": "string", "description": "Detailed description" },
+        "rating": { "type": "number", "description": "Average review rating" },
+        "reviewCount": { "type": "number", "description": "Total review count" },
+        "badge": { "type": "string", "description": "Promotional badge" },
+        "features": { "type": "array", "description": "Feature highlights" }
+      },
+      "required": ["id", "name", "price", "category", "stock"]
+    },
+    "Order": {
+      "title": "Customer Order",
+      "description": "Customer purchase order and fulfillment status",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Order ID" },
+        "userId": { "type": "string", "description": "User UID who placed order" },
+        "orderNumber": { "type": "string", "description": "Human-readable order tracking number" },
+        "items": { "type": "array", "description": "Ordered line items with quantities and product details" },
+        "total": { "type": "number", "description": "Final paid amount" },
+        "status": { "type": "string", "description": "Pending, Processing, Shipped, Delivered, Cancelled" },
+        "shippingAddress": { "type": "object", "description": "Shipping recipient and address" },
+        "paymentMethod": { "type": "string", "description": "Payment description" },
+        "trackingNumber": { "type": "string", "description": "Courier tracking number" },
+        "carrier": { "type": "string", "description": "Courier company" },
+        "estimatedDelivery": { "type": "string", "description": "Estimated delivery date" },
+        "date": { "type": "string", "description": "Order placement date ISO string" }
+      },
+      "required": ["id", "orderNumber", "total", "status", "date"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Private user account documents indexed by auth UID"
+    },
+    "/products/{productId}": {
+      "schema": "Product",
+      "description": "Public store products catalog readable by all users"
+    },
+    "/orders/{orderId}": {
+      "schema": "Order",
+      "description": "Placed orders accessible by the owning user and store admins"
+    }
+  }
+}

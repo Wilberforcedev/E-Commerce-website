@@ -13,8 +13,10 @@ import {
   Menu,
   X,
   Sparkles,
-  ChevronDown
+  ChevronDown,
+  Mic
 } from 'lucide-react';
+import { VoiceMicButton } from './VoiceMicButton';
 
 export const Navbar: React.FC = () => {
   const {
@@ -101,23 +103,35 @@ export const Navbar: React.FC = () => {
 
           {/* Desktop Search Bar */}
           <div className="hidden md:flex flex-1 max-w-lg mx-4">
-            <div className="relative w-full">
+            <div className="relative w-full flex items-center">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
               <input
                 type="text"
                 placeholder="Search products, brands, audio, gear..."
                 value={filters.search}
                 onChange={handleSearchChange}
-                className="w-full bg-slate-100 hover:bg-slate-50 focus:bg-white pl-10 pr-10 py-2.5 text-sm rounded-full border border-transparent focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none transition-all placeholder:text-slate-400 text-slate-800"
+                className="w-full bg-slate-100 hover:bg-slate-50 focus:bg-white pl-10 pr-16 py-2.5 text-sm rounded-full border border-transparent focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100 outline-none transition-all placeholder:text-slate-400 text-slate-800"
               />
-              {filters.search && (
-                <button
-                  onClick={() => setFilters((p) => ({ ...p, search: '' }))}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              )}
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                {filters.search && (
+                  <button
+                    onClick={() => setFilters((p) => ({ ...p, search: '' }))}
+                    className="p-1 text-slate-400 hover:text-slate-600 rounded-full"
+                    title="Clear search"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+                <VoiceMicButton
+                  tooltip="Search with Voice (Gemini 3.5 Transcribe)"
+                  title="Voice Search NovaMart"
+                  subtitle="Speak a product name or category into your microphone"
+                  onTranscribe={(text) => {
+                    setFilters((prev) => ({ ...prev, search: text }));
+                    if (activeView !== 'shop') setActiveView('shop');
+                  }}
+                />
+              </div>
             </div>
           </div>
 
@@ -297,15 +311,26 @@ export const Navbar: React.FC = () => {
 
         {/* Mobile Search Input */}
         <div className="md:hidden pb-3">
-          <div className="relative w-full">
+          <div className="relative w-full flex items-center">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
               type="text"
               placeholder="Search products..."
               value={filters.search}
               onChange={handleSearchChange}
-              className="w-full bg-slate-100 pl-10 pr-8 py-2 text-sm rounded-full border border-transparent focus:border-indigo-500 focus:bg-white outline-none"
+              className="w-full bg-slate-100 pl-10 pr-14 py-2 text-sm rounded-full border border-transparent focus:border-indigo-500 focus:bg-white outline-none"
             />
+            <div className="absolute right-2 top-1/2 -translate-y-1/2">
+              <VoiceMicButton
+                tooltip="Voice Search (Gemini 3.5 Transcribe)"
+                title="Voice Search NovaMart"
+                subtitle="Speak a product name or category into your microphone"
+                onTranscribe={(text) => {
+                  setFilters((prev) => ({ ...prev, search: text }));
+                  if (activeView !== 'shop') setActiveView('shop');
+                }}
+              />
+            </div>
           </div>
         </div>
 

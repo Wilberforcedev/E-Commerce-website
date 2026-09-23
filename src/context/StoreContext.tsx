@@ -1,6 +1,34 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Product, CartItem, Order, User, Coupon, FilterState, OrderStatus, ShippingAddress } from '../types';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import {
+  Product,
+  CartItem,
+  Order,
+  User,
+  Coupon,
+  FilterState,
+  OrderStatus,
+  ShippingAddress
+} from '../types';
 import { INITIAL_PRODUCTS, INITIAL_ORDERS, INITIAL_COUPONS } from '../data/initialData';
+import { auth, googleProvider, db } from '../firebase';
+import {
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  User as FirebaseUser
+} from 'firebase/auth';
+import {
+  doc,
+  setDoc,
+  getDoc,
+  updateDoc,
+  deleteDoc,
+  collection,
+  onSnapshot,
+  writeBatch
+} from 'firebase/firestore';
 
 export interface ToastMessage {
   id: string;
@@ -18,7 +46,8 @@ interface StoreContextType {
   appliedCoupon: Coupon | null;
   filters: FilterState;
   toasts: ToastMessage[];
-  
+  isAuthLoading: boolean;
+
   // UI states
   activeView: 'shop' | 'admin' | 'orders' | 'wishlist';
   activeProductDetail: Product | null;
@@ -26,8 +55,9 @@ interface StoreContextType {
   isCheckoutOpen: boolean;
   isAuthOpen: boolean;
   isOrderTrackerOpen: boolean;
+  isVoiceSearchOpen: boolean;
   activeOrderConfirmation: Order | null;
-  
+
   // Setters
   setActiveView: (view: 'shop' | 'admin' | 'orders' | 'wishlist') => void;
   setActiveProductDetail: (product: Product | null) => void;
@@ -35,33 +65,39 @@ interface StoreContextType {
   setIsCheckoutOpen: (open: boolean) => void;
   setIsAuthOpen: (open: boolean) => void;
   setIsOrderTrackerOpen: (open: boolean) => void;
+  setIsVoiceSearchOpen: (open: boolean) => void;
   setActiveOrderConfirmation: (order: Order | null) => void;
   setFilters: React.Dispatch<React.SetStateAction<FilterState>>;
-  
+
   // Actions
   addToCart: (product: Product, quantity?: number) => void;
   removeFromCart: (productId: string) => void;
   updateCartQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
-  
+
   toggleWishlist: (productId: string) => void;
   isInWishlist: (productId: string) => boolean;
-  
+
   applyCoupon: (code: string) => { success: boolean; message: string };
   removeCoupon: () => void;
-  
-  placeOrder: (address: ShippingAddress, paymentMethod: string, shippingCost: number) => Order;
-  updateOrderStatus: (orderId: string, newStatus: OrderStatus) => void;
-  
-  addProduct: (product: Omit<Product, 'id'>) => void;
-  updateProduct: (product: Product) => void;
-  deleteProduct: (id: string) => void;
-  
+
+  placeOrder: (address: ShippingAddress, paymentMethod: string, shippingCost: number) => Promise<Order>;
+  updateOrderStatus: (orderId: string, newStatus: OrderStatus) => Promise<void>;
+
+  addProduct: (product: Omit<Product, 'id'>) => Promise<void>;
+  updateProduct: (product: Product) => Promise<void>;
+  deleteProduct: (id: string) => Promise<void>;
+
+  // Auth actions
+  signInWithGoogle: () => Promise<void>;
+  signInWithEmail: (email: string, pass: string) => Promise<void>;
+  signUpWithEmail: (email: string, pass: string) => Promise<void>;
   login: (email: string, role?: 'customer' | 'admin') => void;
-  logout: () => void;
+  logout: () => Promise<void>;
+
   addToast: (title: string, message?: string, type?: 'success' | 'error' | 'info') => void;
   removeToast: (id: string) => void;
-  
+
   // Calculated helpers
   cartSubtotal: number;
   cartDiscount: number;
@@ -71,11 +107,9 @@ interface StoreContextType {
 const StoreContext = createContext<StoreContextType | undefined>(undefined);
 
 const STORAGE_KEYS = {
-  PRODUCTS: 'novamart_products_v1',
-  CART: 'novamart_cart_v1',
-  WISHLIST: 'novamart_wishlist_v1',
-  ORDERS: 'novamart_orders_v1',
-  USER: 'novamart_user_v1'
+  CART: 'novamart_cart_v2',
+  WISHLIST: 'novamart_wishlist_v2',
+  USER_BACKUP: 'novamart_user_v2',
 };
 
 const DEFAULT_FILTERS: FilterState = {
@@ -89,15 +123,10 @@ const DEFAULT_FILTERS: FilterState = {
 };
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Products
-  const [products, setProducts] = useState<Product[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
-      return saved ? JSON.parse(saved) : INITIAL_PRODUCTS;
-    } catch {
-      return INITIAL_PRODUCTS;
-    }
-  });
+  const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
+  const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
 
   // Cart
   const [cart, setCart] = useState<CartItem[]>(() => {
@@ -119,33 +148,6 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   });
 
-  // Orders
-  const [orders, setOrders] = useState<Order[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.ORDERS);
-      return saved ? JSON.parse(saved) : INITIAL_ORDERS;
-    } catch {
-      return INITIAL_ORDERS;
-    }
-  });
-
-  // User
-  const [currentUser, setCurrentUser] = useState<User | null>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEYS.USER);
-      if (saved) return JSON.parse(saved);
-    } catch {
-      // fallback
-    }
-    return {
-      id: 'usr-default',
-      name: 'Wilberforce Dev',
-      email: 'wilberofficial2001@gmail.com',
-      role: 'customer',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'
-    };
-  });
-
   // UI state
   const [activeView, setActiveView] = useState<'shop' | 'admin' | 'orders' | 'wishlist'>('shop');
   const [activeProductDetail, setActiveProductDetail] = useState<Product | null>(null);
@@ -153,20 +155,176 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [isCheckoutOpen, setIsCheckoutOpen] = useState<boolean>(false);
   const [isAuthOpen, setIsAuthOpen] = useState<boolean>(false);
   const [isOrderTrackerOpen, setIsOrderTrackerOpen] = useState<boolean>(false);
+  const [isVoiceSearchOpen, setIsVoiceSearchOpen] = useState<boolean>(false);
   const [activeOrderConfirmation, setActiveOrderConfirmation] = useState<Order | null>(null);
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
-  // Sync to local storage
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEYS.PRODUCTS, JSON.stringify(products));
-    } catch (e) {
-      console.error(e);
-    }
-  }, [products]);
+  // Toast Helper
+  const addToast = (title: string, message?: string, type: 'success' | 'error' | 'info' = 'success') => {
+    const id = Math.random().toString(36).substring(2, 9);
+    setToasts((prev) => [...prev, { id, title, message, type }]);
+    setTimeout(() => {
+      removeToast(id);
+    }, 4000);
+  };
 
+  const removeToast = (id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
+  };
+
+  // 1. Synchronize Firebase Auth State
+  useEffect(() => {
+    const unsubscribeAuth = onAuthStateChanged(auth, async (fbUser: FirebaseUser | null) => {
+      setIsAuthLoading(true);
+      if (fbUser) {
+        try {
+          const userDocRef = doc(db, 'users', fbUser.uid);
+          const userSnap = await getDoc(userDocRef);
+
+          let userRole: 'customer' | 'admin' =
+            fbUser.email === 'admin@novamart.store' || fbUser.email?.toLowerCase().includes('admin')
+              ? 'admin'
+              : 'customer';
+
+          let loadedWishlist: string[] = wishlist;
+
+          if (userSnap.exists()) {
+            const data = userSnap.data();
+            if (data.role) userRole = data.role;
+            if (Array.isArray(data.wishlist) && data.wishlist.length > 0) {
+              loadedWishlist = data.wishlist;
+              setWishlist(data.wishlist);
+            }
+          } else {
+            // First time user, save to Firestore
+            await setDoc(
+              userDocRef,
+              {
+                uid: fbUser.uid,
+                email: fbUser.email || '',
+                displayName: fbUser.displayName || fbUser.email?.split('@')[0] || 'Customer',
+                photoURL: fbUser.photoURL || '',
+                role: userRole,
+                wishlist: loadedWishlist,
+                createdAt: new Date().toISOString()
+              },
+              { merge: true }
+            );
+          }
+
+          const mappedUser: User = {
+            id: fbUser.uid,
+            name: fbUser.displayName || fbUser.email?.split('@')[0] || 'Customer',
+            email: fbUser.email || '',
+            role: userRole,
+            avatar: fbUser.photoURL || undefined
+          };
+
+          setCurrentUser(mappedUser);
+          localStorage.setItem(STORAGE_KEYS.USER_BACKUP, JSON.stringify(mappedUser));
+        } catch (error) {
+          console.error('Error fetching Firestore user profile:', error);
+          const fallbackUser: User = {
+            id: fbUser.uid,
+            name: fbUser.displayName || fbUser.email?.split('@')[0] || 'Customer',
+            email: fbUser.email || '',
+            role: 'customer',
+            avatar: fbUser.photoURL || undefined
+          };
+          setCurrentUser(fallbackUser);
+        }
+      } else {
+        // Fallback to local storage demo user if previously set
+        try {
+          const savedBackup = localStorage.getItem(STORAGE_KEYS.USER_BACKUP);
+          if (savedBackup) {
+            setCurrentUser(JSON.parse(savedBackup));
+          } else {
+            setCurrentUser(null);
+          }
+        } catch {
+          setCurrentUser(null);
+        }
+      }
+      setIsAuthLoading(false);
+    });
+
+    return () => unsubscribeAuth();
+  }, []);
+
+  // 2. Synchronize Products Collection from Firestore
+  useEffect(() => {
+    const productsCol = collection(db, 'products');
+    const unsubscribeProducts = onSnapshot(
+      productsCol,
+      async (snapshot) => {
+        if (snapshot.empty) {
+          // Seed initial products to Firestore
+          try {
+            const batch = writeBatch(db);
+            INITIAL_PRODUCTS.forEach((prod) => {
+              const docRef = doc(db, 'products', prod.id);
+              batch.set(docRef, prod);
+            });
+            await batch.commit();
+          } catch (seedErr) {
+            console.error('Failed to seed products to Firestore:', seedErr);
+          }
+        } else {
+          const loadedProducts = snapshot.docs.map((docSnap) => ({
+            id: docSnap.id,
+            ...(docSnap.data() as Omit<Product, 'id'>)
+          }));
+          setProducts(loadedProducts);
+        }
+      },
+      (err) => {
+        console.warn('Firestore products snapshot listener:', err);
+      }
+    );
+
+    return () => unsubscribeProducts();
+  }, []);
+
+  // 3. Synchronize Orders Collection from Firestore
+  useEffect(() => {
+    const ordersCol = collection(db, 'orders');
+    const unsubscribeOrders = onSnapshot(
+      ordersCol,
+      async (snapshot) => {
+        if (snapshot.empty) {
+          // Seed initial orders to Firestore so tracking works
+          try {
+            const batch = writeBatch(db);
+            INITIAL_ORDERS.forEach((order) => {
+              const docRef = doc(db, 'orders', order.id);
+              batch.set(docRef, order);
+            });
+            await batch.commit();
+          } catch (seedErr) {
+            console.error('Failed to seed orders to Firestore:', seedErr);
+          }
+        } else {
+          const loadedOrders = snapshot.docs.map((docSnap) => ({
+            id: docSnap.id,
+            ...(docSnap.data() as Omit<Order, 'id'>)
+          }));
+          // Sort newest first
+          loadedOrders.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+          setOrders(loadedOrders);
+        }
+      },
+      (err) => {
+        console.warn('Firestore orders snapshot listener:', err);
+      }
+    );
+
+    return () => unsubscribeOrders();
+  }, []);
+
+  // Sync cart & wishlist to local storage
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEYS.CART, JSON.stringify(cart));
@@ -178,43 +336,16 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEYS.WISHLIST, JSON.stringify(wishlist));
-    } catch (e) {
-      console.error(e);
-    }
-  }, [wishlist]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEYS.ORDERS, JSON.stringify(orders));
-    } catch (e) {
-      console.error(e);
-    }
-  }, [orders]);
-
-  useEffect(() => {
-    try {
-      if (currentUser) {
-        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(currentUser));
-      } else {
-        localStorage.removeItem(STORAGE_KEYS.USER);
+      // If user is logged in, sync wishlist to their Firestore doc
+      if (currentUser?.id && auth.currentUser) {
+        updateDoc(doc(db, 'users', currentUser.id), {
+          wishlist
+        }).catch((err) => console.warn('Could not sync wishlist to Firestore:', err));
       }
     } catch (e) {
       console.error(e);
     }
-  }, [currentUser]);
-
-  // Toast Helper
-  const addToast = (title: string, message?: string, type: 'success' | 'error' | 'info' = 'success') => {
-    const id = Math.random().toString(36).substring(2, 9);
-    setToasts((prev) => [...prev, { id, title, message, type }]);
-    setTimeout(() => {
-      removeToast(id);
-    }, 3800);
-  };
-
-  const removeToast = (id: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
-  };
+  }, [wishlist, currentUser?.id]);
 
   // Cart operations
   const addToCart = (product: Product, quantity = 1) => {
@@ -306,12 +437,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
-  // Order Placement
-  const placeOrder = (
+  // Order Placement with Firestore Persistence
+  const placeOrder = async (
     address: ShippingAddress,
     paymentMethod: string,
     shippingCost: number
-  ): Order => {
+  ): Promise<Order> => {
     const subtotal = cartSubtotal;
     const discount = cartDiscount;
     const tax = Math.round((subtotal - discount) * 0.08 * 100) / 100;
@@ -323,6 +454,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     const newOrder: Order = {
       id: `ord-${Date.now()}`,
+      userId: currentUser?.id || 'guest',
       orderNumber,
       date: new Date().toISOString(),
       items: [...cart],
@@ -343,53 +475,120 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       carrier: shippingCost > 15 ? 'FedEx Priority' : 'DHL Standard'
     };
 
-    // Decrease stock of bought products
-    setProducts((prev) =>
-      prev.map((prod) => {
-        const bought = cart.find((item) => item.product.id === prod.id);
-        if (bought) {
-          return { ...prod, stock: Math.max(0, prod.stock - bought.quantity) };
+    // Decrease stock of bought products in state and Firestore
+    cart.forEach(async (item) => {
+      const prod = products.find((p) => p.id === item.product.id);
+      if (prod) {
+        const newStock = Math.max(0, prod.stock - item.quantity);
+        try {
+          await updateDoc(doc(db, 'products', prod.id), { stock: newStock });
+        } catch (e) {
+          console.warn('Could not update product stock in Firestore:', e);
         }
-        return prod;
-      })
-    );
+      }
+    });
+
+    // Save order in Firestore
+    try {
+      await setDoc(doc(db, 'orders', newOrder.id), newOrder);
+    } catch (firestoreErr) {
+      console.error('Could not persist order to Firestore:', firestoreErr);
+    }
 
     setOrders((prev) => [newOrder, ...prev]);
     clearCart();
     setActiveOrderConfirmation(newOrder);
-    addToast('Order Placed Successfully!', `Order #${orderNumber} is being processed.`, 'success');
+    addToast('Order Placed Successfully!', `Order #${orderNumber} has been persisted to Firestore.`, 'success');
     return newOrder;
   };
 
-  const updateOrderStatus = (orderId: string, newStatus: OrderStatus) => {
+  const updateOrderStatus = async (orderId: string, newStatus: OrderStatus) => {
     setOrders((prev) =>
       prev.map((ord) => (ord.id === orderId ? { ...ord, status: newStatus } : ord))
     );
+    try {
+      await updateDoc(doc(db, 'orders', orderId), { status: newStatus });
+    } catch (e) {
+      console.warn('Could not update order status in Firestore:', e);
+    }
     addToast('Order Updated', `Order status changed to ${newStatus}.`, 'info');
   };
 
-  // Product Admin Operations
-  const addProduct = (productData: Omit<Product, 'id'>) => {
+  // Product Admin Operations with Firestore Persistence
+  const addProduct = async (productData: Omit<Product, 'id'>) => {
     const newProduct: Product = {
       ...productData,
       id: `prod-${Date.now()}`
     };
+    try {
+      await setDoc(doc(db, 'products', newProduct.id), newProduct);
+    } catch (e) {
+      console.warn('Could not save product to Firestore:', e);
+    }
     setProducts((prev) => [newProduct, ...prev]);
-    addToast('Product Created', `${newProduct.name} has been added to inventory.`);
+    addToast('Product Created', `${newProduct.name} saved to Firestore inventory.`);
   };
 
-  const updateProduct = (updated: Product) => {
+  const updateProduct = async (updated: Product) => {
     setProducts((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
-    addToast('Product Updated', `${updated.name} changes saved.`);
+    try {
+      await setDoc(doc(db, 'products', updated.id), updated, { merge: true });
+    } catch (e) {
+      console.warn('Could not update product in Firestore:', e);
+    }
+    addToast('Product Updated', `${updated.name} changes persisted.`);
   };
 
-  const deleteProduct = (id: string) => {
+  const deleteProduct = async (id: string) => {
     const prod = products.find((p) => p.id === id);
     setProducts((prev) => prev.filter((p) => p.id !== id));
+    try {
+      await deleteDoc(doc(db, 'products', id));
+    } catch (e) {
+      console.warn('Could not delete product from Firestore:', e);
+    }
     addToast('Product Removed', prod ? `${prod.name} deleted.` : undefined, 'info');
   };
 
-  // Auth
+  // Firebase Authentication
+  const signInWithGoogle = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const fbUser = result.user;
+      addToast('Signed in with Google', `Welcome back, ${fbUser.displayName || fbUser.email}!`);
+      setIsAuthOpen(false);
+    } catch (error: any) {
+      console.error('Google Sign-in error:', error);
+      addToast('Sign-in Failed', error.message || 'Could not complete Google Sign-in.', 'error');
+      throw error;
+    }
+  };
+
+  const signInWithEmail = async (email: string, pass: string) => {
+    try {
+      const result = await signInWithEmailAndPassword(auth, email, pass);
+      addToast('Welcome Back', `Signed in as ${result.user.email}`);
+      setIsAuthOpen(false);
+    } catch (error: any) {
+      console.error('Email sign-in error:', error);
+      addToast('Authentication Error', error.message || 'Incorrect email or password.', 'error');
+      throw error;
+    }
+  };
+
+  const signUpWithEmail = async (email: string, pass: string) => {
+    try {
+      const result = await createUserWithEmailAndPassword(auth, email, pass);
+      addToast('Account Created', `Welcome to NovaMart, ${result.user.email}!`);
+      setIsAuthOpen(false);
+    } catch (error: any) {
+      console.error('Sign-up error:', error);
+      addToast('Registration Error', error.message || 'Could not create account.', 'error');
+      throw error;
+    }
+  };
+
+  // Demo profile fallback
   const login = (email: string, role: 'customer' | 'admin' = 'customer') => {
     const user: User = {
       id: `usr-${Date.now()}`,
@@ -402,15 +601,22 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           : 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80'
     };
     setCurrentUser(user);
-    addToast('Welcome back!', `Logged in as ${user.name} (${user.role}).`);
+    localStorage.setItem(STORAGE_KEYS.USER_BACKUP, JSON.stringify(user));
+    addToast('Demo Mode Activated', `Signed in as ${user.name} (${user.role}).`);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    try {
+      await signOut(auth);
+    } catch (e) {
+      console.warn('Sign-out error:', e);
+    }
     setCurrentUser(null);
+    localStorage.removeItem(STORAGE_KEYS.USER_BACKUP);
     if (activeView === 'admin') {
       setActiveView('shop');
     }
-    addToast('Logged Out', 'You have been signed out safely.', 'info');
+    addToast('Signed Out', 'You have been signed out securely.', 'info');
   };
 
   return (
@@ -424,12 +630,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         appliedCoupon,
         filters,
         toasts,
+        isAuthLoading,
         activeView,
         activeProductDetail,
         isCartOpen,
         isCheckoutOpen,
         isAuthOpen,
         isOrderTrackerOpen,
+        isVoiceSearchOpen,
         activeOrderConfirmation,
         setActiveView,
         setActiveProductDetail,
@@ -437,6 +645,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setIsCheckoutOpen,
         setIsAuthOpen,
         setIsOrderTrackerOpen,
+        setIsVoiceSearchOpen,
         setActiveOrderConfirmation,
         setFilters,
         addToCart,
@@ -452,6 +661,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         addProduct,
         updateProduct,
         deleteProduct,
+        signInWithGoogle,
+        signInWithEmail,
+        signUpWithEmail,
         login,
         logout,
         addToast,

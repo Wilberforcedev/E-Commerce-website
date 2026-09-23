@@ -12,8 +12,10 @@ import {
   CheckCircle2,
   Share2,
   MessageSquarePlus,
-  Send
+  Send,
+  Mic
 } from 'lucide-react';
+import { VoiceMicButton } from './VoiceMicButton';
 
 export const ProductDetailModal: React.FC = () => {
   const {
@@ -485,13 +487,28 @@ export const ProductDetailModal: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="text-[11px] font-bold text-slate-700 block mb-1">Your Review</label>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-[11px] font-bold text-slate-700">Your Review</label>
+                        <div className="flex items-center gap-1.5 text-xs">
+                          <span className="text-[10px] text-slate-400">Speak review:</span>
+                          <VoiceMicButton
+                            mode="generic"
+                            title="Speak Your Product Review"
+                            subtitle="Speak your thoughts and Gemini 3.5 Transcribe will transcribe your review"
+                            tooltip="Transcribe review with microphone (gemini-3.5-transcribe)"
+                            buttonClassName="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-[10px] font-bold transition"
+                            onTranscribe={(transcribed) => {
+                              setNewReviewComment((prev) => (prev ? `${prev} ${transcribed}` : transcribed));
+                            }}
+                          />
+                        </div>
+                      </div>
                       <textarea
                         required
                         rows={3}
                         value={newReviewComment}
                         onChange={(e) => setNewReviewComment(e.target.value)}
-                        placeholder="What did you like or dislike about this product?"
+                        placeholder="What did you like or dislike about this product? (Type or click the microphone to speak)"
                         className="w-full bg-white text-xs p-3 rounded-xl border border-slate-200 outline-none focus:border-indigo-500"
                       />
                     </div>

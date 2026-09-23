@@ -50,6 +50,7 @@ export interface ShippingAddress {
 export interface Order {
   id: string;
   orderNumber: string;
+  userId?: string;
   date: string;
   items: CartItem[];
   subtotal: number;

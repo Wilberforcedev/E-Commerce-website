@@ -2,5 +2,8 @@
   "name": "NovaMart E-Commerce",
   "description": "Full-featured modern e-commerce platform with product catalog, search & filtering, cart & checkout, order tracking, user auth, and store admin management.",
   "permissions": [],
-  "capabilities": []
+  "capabilities": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }
