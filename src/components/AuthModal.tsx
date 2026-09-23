@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useStore } from '../context/StoreContext';
-import { X, Lock, Mail, User, ShieldCheck, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { X, Lock, Mail, ShieldCheck, User, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 
 export const AuthModal: React.FC = () => {
   const {
@@ -18,6 +18,10 @@ export const AuthModal: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  // Inline field errors
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+
   if (!isAuthOpen) return null;
 
   const handleGoogleSignIn = async () => {
@@ -33,10 +37,36 @@ export const AuthModal: React.FC = () => {
     }
   };
 
+  const validateForm = (): boolean => {
+    let isValid = true;
+    setEmailError(null);
+    setPasswordError(null);
+
+    if (!email.trim()) {
+      setEmailError('Email address is required.');
+      isValid = false;
+    } else if (!/^\S+@\S+\.\S+$/.test(email.trim())) {
+      setEmailError('Please enter a valid email address.');
+      isValid = false;
+    }
+
+    if (!password) {
+      setPasswordError('Password is required.');
+      isValid = false;
+    } else if (password.length < 6) {
+      setPasswordError('Password must contain at least 6 characters.');
+      isValid = false;
+    }
+
+    return isValid;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return;
     setErrorMsg(null);
+
+    if (!validateForm()) return;
+
     setLoading(true);
     try {
       if (mode === 'signin') {
@@ -63,33 +93,40 @@ export const AuthModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-fade-in">
-      <div className="fixed inset-0" onClick={() => setIsAuthOpen(false)} />
+    <div
+      className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="auth-modal-title"
+    >
+      <div className="fixed inset-0" onClick={() => !loading && setIsAuthOpen(false)} />
 
-      <div className="relative bg-white rounded-3xl max-w-md w-full shadow-2xl overflow-hidden z-10 p-6 sm:p-8 space-y-5">
+      <div className="relative bg-white rounded-lg max-w-sm w-full border border-slate-200 shadow-xl overflow-hidden z-10 p-6 space-y-4">
         
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div>
-            <h3 className="font-extrabold text-lg text-slate-900">
-              {mode === 'signin' ? 'Sign In to NovaMart' : 'Create an Account'}
+            <h3 id="auth-modal-title" className="font-bold text-base text-slate-900">
+              {mode === 'signin' ? 'Sign In' : 'Create Account'}
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Secure authentication with Firebase & Google
+              Access your saved orders and hardware cart
             </p>
           </div>
 
           <button
             onClick={() => setIsAuthOpen(false)}
-            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition"
+            disabled={loading}
+            aria-label="Close authentication window"
+            className="p-1 text-slate-400 hover:text-slate-700 rounded transition"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Error notification */}
+        {/* Global Error Banner */}
         {errorMsg && (
-          <div className="p-3 bg-rose-50 border border-rose-200 rounded-xl flex items-start gap-2 text-xs text-rose-700">
+          <div className="p-3 bg-rose-50 border border-rose-200 rounded-md flex items-start gap-2 text-xs text-rose-700" role="alert">
             <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
             <span>{errorMsg}</span>
           </div>
@@ -101,10 +138,10 @@ export const AuthModal: React.FC = () => {
             type="button"
             disabled={loading}
             onClick={handleGoogleSignIn}
-            className="w-full py-3 px-4 bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs rounded-xl shadow-xs border border-slate-300 flex items-center justify-center gap-2.5 transition active:scale-[0.99] cursor-pointer"
+            className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs rounded-md border border-slate-300 flex items-center justify-center gap-2.5 transition cursor-pointer"
           >
             {loading ? (
-              <Loader2 className="w-4 h-4 animate-spin text-indigo-600" />
+              <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
             ) : (
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path
@@ -131,81 +168,102 @@ export const AuthModal: React.FC = () => {
 
         <div className="relative flex items-center justify-center">
           <div className="border-t border-slate-200 w-full" />
-          <span className="bg-white px-2 text-[11px] font-semibold text-slate-400 uppercase tracking-wider">
-            or with email
+          <span className="bg-white px-2 text-[11px] font-medium text-slate-400 uppercase tracking-wider">
+            or email
           </span>
         </div>
 
-        {/* Email & Password Form */}
-        <form onSubmit={handleSubmit} className="space-y-3.5">
+        {/* Email & Password Form with Inline Error Feedback */}
+        <form onSubmit={handleSubmit} noValidate className="space-y-3">
           <div>
-            <label className="text-[11px] font-bold text-slate-700 block mb-1">Email Address</label>
+            <label className="text-xs font-medium text-slate-700 block mb-1">
+              Email Address <span className="text-rose-500">*</span>
+            </label>
             <div className="relative">
-              <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Mail className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="email"
-                required
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (emailError) setEmailError(null);
+                }}
                 placeholder="name@example.com"
-                className="w-full text-xs pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition"
+                className={`w-full text-xs pl-8 pr-3 py-2 rounded-md border outline-none transition ${
+                  emailError
+                    ? 'border-rose-500 bg-rose-50/20'
+                    : 'border-slate-300 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600'
+                }`}
               />
             </div>
+            {emailError && (
+              <p className="text-[11px] text-rose-600 mt-1 font-medium">{emailError}</p>
+            )}
           </div>
 
           <div>
-            <label className="text-[11px] font-bold text-slate-700 block mb-1">Password</label>
+            <label className="text-xs font-medium text-slate-700 block mb-1">
+              Password <span className="text-rose-500">*</span>
+            </label>
             <div className="relative">
-              <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Lock className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="password"
-                required
-                minLength={6}
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="At least 6 characters"
-                className="w-full text-xs pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 transition"
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (passwordError) setPasswordError(null);
+                }}
+                placeholder="Minimum 6 characters"
+                className={`w-full text-xs pl-8 pr-3 py-2 rounded-md border outline-none transition ${
+                  passwordError
+                    ? 'border-rose-500 bg-rose-50/20'
+                    : 'border-slate-300 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600'
+                }`}
               />
             </div>
+            {passwordError && (
+              <p className="text-[11px] text-rose-600 mt-1 font-medium">{passwordError}</p>
+            )}
           </div>
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs rounded-xl shadow-md shadow-indigo-200 transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-70"
+            className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-md transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-60"
           >
             {loading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
             ) : (
               <>
-                <span>{mode === 'signin' ? 'Sign In to Account' : 'Create Free Account'}</span>
-                <ArrowRight className="w-4 h-4" />
+                <span>{mode === 'signin' ? 'Sign In' : 'Create Account'}</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </>
             )}
           </button>
         </form>
 
-        {/* Quick Demo Logins */}
-        <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-100 space-y-2">
-          <p className="text-[10px] font-extrabold text-slate-500 uppercase tracking-wider">
-            Quick 1-Click Demo Profiles
+        {/* Demo Fast Logins */}
+        <div className="bg-slate-50 p-3 rounded-md border border-slate-200 space-y-2">
+          <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+            Quick Sandbox Profiles
           </p>
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={handleDemoCustomer}
-              className="py-2 px-2.5 bg-white hover:bg-indigo-50 text-indigo-900 font-bold text-[11px] rounded-xl shadow-2xs border border-indigo-100 flex items-center justify-center gap-1.5 transition"
+              className="py-1.5 px-2 bg-white hover:bg-slate-100 text-slate-700 font-medium text-[11px] rounded border border-slate-200 flex items-center justify-center gap-1.5 transition"
             >
-              <User className="w-3.5 h-3.5 text-indigo-600" />
-              <span>Customer Demo</span>
+              <User className="w-3 h-3 text-slate-500" />
+              <span>Customer</span>
             </button>
 
             <button
               type="button"
               onClick={handleDemoAdmin}
-              className="py-2 px-2.5 bg-white hover:bg-amber-50 text-amber-950 font-bold text-[11px] rounded-xl shadow-2xs border border-amber-200 flex items-center justify-center gap-1.5 transition"
+              className="py-1.5 px-2 bg-white hover:bg-slate-100 text-slate-700 font-medium text-[11px] rounded border border-slate-200 flex items-center justify-center gap-1.5 transition"
             >
-              <ShieldCheck className="w-3.5 h-3.5 text-amber-600" />
+              <ShieldCheck className="w-3 h-3 text-slate-500" />
               <span>Store Admin</span>
             </button>
           </div>
@@ -214,13 +272,15 @@ export const AuthModal: React.FC = () => {
         {/* Switch Mode */}
         <div className="text-center pt-2 border-t border-slate-100">
           <p className="text-xs text-slate-500">
-            {mode === 'signin' ? "Don't have an account yet?" : 'Already have an account?'}{' '}
+            {mode === 'signin' ? "Don't have an account?" : 'Already registered?'}{' '}
             <button
               onClick={() => {
                 setErrorMsg(null);
+                setEmailError(null);
+                setPasswordError(null);
                 setMode(mode === 'signin' ? 'signup' : 'signin');
               }}
-              className="text-indigo-600 font-bold hover:underline"
+              className="text-slate-900 font-semibold hover:underline"
             >
               {mode === 'signin' ? 'Sign Up' : 'Sign In'}
             </button>

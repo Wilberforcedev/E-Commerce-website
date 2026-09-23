@@ -128,32 +128,33 @@ export const ProductDetailModal: React.FC = () => {
         onClick={() => setActiveProductDetail(null)}
       />
 
-      <div className="relative bg-white rounded-3xl max-w-4xl w-full shadow-2xl overflow-hidden z-10 flex flex-col max-h-[92vh]">
+      <div className="relative bg-white rounded-lg max-w-4xl w-full border border-slate-200 shadow-xl overflow-hidden z-10 flex flex-col max-h-[92vh]">
         
         {/* Header Action Bar */}
-        <div className="flex items-center justify-between p-4 sm:px-6 border-b border-slate-100 bg-white sticky top-0 z-20">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
-            <span>Store</span>
+        <div className="flex items-center justify-between p-4 sm:px-6 border-b border-slate-200 bg-white sticky top-0 z-20">
+          <div className="flex items-center gap-2 text-xs text-slate-500 font-mono">
+            <span>Hardware</span>
             <span>/</span>
-            <span className="text-indigo-600 font-bold">{product.category}</span>
+            <span className="text-slate-900 font-semibold">{product.category}</span>
             <span>/</span>
-            <span className="text-slate-900 truncate max-w-[150px] sm:max-w-xs">{product.name}</span>
+            <span className="text-slate-600 truncate max-w-[150px] sm:max-w-xs">{product.name}</span>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <button
               onClick={handleShare}
-              className="p-2 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition"
+              className="p-1.5 text-slate-500 hover:text-slate-800 rounded transition"
               title="Share Product"
+              aria-label="Share product link"
             >
               <Share2 className="w-4 h-4" />
             </button>
             <button
               onClick={() => setActiveProductDetail(null)}
-              className="p-2 text-slate-400 hover:text-slate-800 hover:bg-slate-100 rounded-xl transition"
+              className="p-1.5 text-slate-400 hover:text-slate-800 rounded transition"
               aria-label="Close product details"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -166,7 +167,7 @@ export const ProductDetailModal: React.FC = () => {
             
             {/* Gallery Column */}
             <div className="space-y-3">
-              <div className="relative aspect-square rounded-2xl overflow-hidden bg-slate-100 border border-slate-200">
+              <div className="relative aspect-square rounded-lg overflow-hidden bg-slate-100 border border-slate-200">
                 <img
                   src={product.images[selectedImageIndex] || product.images[0]}
                   alt={product.name}
@@ -174,7 +175,7 @@ export const ProductDetailModal: React.FC = () => {
                 />
 
                 {product.badge && (
-                  <span className="absolute top-4 left-4 bg-amber-400 text-slate-950 font-black text-xs px-3 py-1 rounded-full uppercase tracking-wider shadow">
+                  <span className="absolute top-3 left-3 bg-slate-900 text-white font-mono text-[10px] uppercase tracking-wider px-2 py-0.5 rounded">
                     {product.badge}
                   </span>
                 )}
@@ -182,15 +183,15 @@ export const ProductDetailModal: React.FC = () => {
 
               {/* Thumbnails */}
               {product.images.length > 1 && (
-                <div className="flex gap-2.5 overflow-x-auto pb-1">
+                <div className="flex gap-2 overflow-x-auto pb-1">
                   {product.images.map((img, idx) => (
                     <button
                       key={idx}
                       onClick={() => setSelectedImageIndex(idx)}
-                      className={`relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden shrink-0 border-2 transition ${
+                      className={`relative w-16 h-16 rounded overflow-hidden shrink-0 border transition ${
                         selectedImageIndex === idx
-                          ? 'border-indigo-600 ring-2 ring-indigo-100'
-                          : 'border-slate-200 opacity-70 hover:opacity-100'
+                          ? 'border-slate-900 ring-1 ring-slate-900'
+                          : 'border-slate-200 opacity-60 hover:opacity-100'
                       }`}
                     >
                       <img src={img} alt="" className="w-full h-full object-cover" />
@@ -204,37 +205,38 @@ export const ProductDetailModal: React.FC = () => {
             <div className="flex flex-col justify-between space-y-5">
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                  <span className="text-xs uppercase font-extrabold tracking-wider text-indigo-600 bg-indigo-50 px-2.5 py-0.5 rounded-md">
+                  <span className="text-[11px] uppercase font-mono tracking-wider text-slate-500">
                     {product.category}
                   </span>
-                  <div className="flex items-center gap-1 text-xs font-bold text-slate-700">
-                    <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                  <span className="text-slate-300">•</span>
+                  <div className="flex items-center gap-1 text-xs font-medium text-slate-700">
+                    <Star className="w-3.5 h-3.5 fill-slate-900 text-slate-900" />
                     <span>{product.rating.toFixed(1)}</span>
-                    <span className="text-slate-400 font-normal">({product.reviewCount} customer reviews)</span>
+                    <span className="text-slate-400 font-normal">({product.reviewCount} reviews)</span>
                   </div>
                 </div>
 
-                <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight leading-snug">
+                <h1 className="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight leading-snug">
                   {product.name}
                 </h1>
 
                 {product.tagline && (
-                  <p className="text-xs font-medium text-slate-500 mt-1 italic">
-                    "{product.tagline}"
+                  <p className="text-xs text-slate-500 mt-1">
+                    {product.tagline}
                   </p>
                 )}
 
                 {/* Price Display */}
-                <div className="flex items-baseline gap-3 mt-4">
-                  <span className="text-3xl font-black text-slate-900">
+                <div className="flex items-baseline gap-3 mt-3 font-mono">
+                  <span className="text-2xl sm:text-3xl font-bold text-slate-900">
                     ${product.price.toFixed(2)}
                   </span>
-                  {product.originalPrice && (
+                  {product.originalPrice && product.originalPrice > product.price && (
                     <>
-                      <span className="text-base text-slate-400 line-through">
+                      <span className="text-sm text-slate-400 line-through">
                         ${product.originalPrice.toFixed(2)}
                       </span>
-                      <span className="text-xs font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                      <span className="text-xs font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded">
                         Save {discountPercent}%
                       </span>
                     </>
@@ -244,13 +246,13 @@ export const ProductDetailModal: React.FC = () => {
                 {/* Stock indicator */}
                 <div className="mt-3 flex items-center gap-2">
                   {product.stock > 0 ? (
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <div className="flex items-center gap-1.5 text-xs text-slate-700">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 inline-block" />
                       <span>In Stock ({product.stock} units available)</span>
                     </div>
                   ) : (
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-rose-600">
-                      <span className="w-2 h-2 rounded-full bg-rose-500" />
+                    <div className="flex items-center gap-1.5 text-xs font-medium text-rose-600">
+                      <span className="w-1.5 h-1.5 rounded-full bg-rose-600 inline-block" />
                       <span>Currently Out of Stock</span>
                     </div>
                   )}
@@ -262,23 +264,23 @@ export const ProductDetailModal: React.FC = () => {
               </div>
 
               {/* Quantity & CTA Buttons */}
-              <div className="space-y-3 pt-4 border-t border-slate-100">
+              <div className="space-y-3 pt-4 border-t border-slate-200">
                 <div className="flex items-center gap-3">
-                  <div className="flex items-center border border-slate-200 rounded-xl bg-slate-50 p-1">
+                  <div className="flex items-center border border-slate-200 rounded bg-slate-50">
                     <button
                       onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                       disabled={quantity <= 1}
-                      className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-slate-600 hover:bg-white disabled:opacity-30"
+                      className="px-2.5 py-1 text-slate-600 hover:bg-slate-200 transition disabled:opacity-30"
                     >
                       -
                     </button>
-                    <span className="w-10 text-center font-extrabold text-sm text-slate-800">
+                    <span className="w-8 text-center font-mono text-xs font-semibold text-slate-800">
                       {quantity}
                     </span>
                     <button
                       onClick={() => setQuantity((q) => Math.min(product.stock, q + 1))}
                       disabled={quantity >= product.stock}
-                      className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-slate-600 hover:bg-white disabled:opacity-30"
+                      className="px-2.5 py-1 text-slate-600 hover:bg-slate-200 transition disabled:opacity-30"
                     >
                       +
                     </button>
@@ -286,31 +288,32 @@ export const ProductDetailModal: React.FC = () => {
 
                   <button
                     onClick={() => toggleWishlist(product.id)}
-                    className={`p-3 rounded-xl border transition flex items-center justify-center ${
+                    className={`p-2 rounded border transition flex items-center justify-center ${
                       inWishlist
                         ? 'border-rose-300 bg-rose-50 text-rose-600'
-                        : 'border-slate-200 text-slate-600 hover:text-rose-500 hover:bg-rose-50'
+                        : 'border-slate-200 text-slate-600 hover:text-rose-600 hover:bg-slate-50'
                     }`}
                     title={inWishlist ? 'Remove from wishlist' : 'Save to wishlist'}
+                    aria-label="Toggle wishlist"
                   >
-                    <Heart className={`w-5 h-5 ${inWishlist ? 'fill-current' : ''}`} />
+                    <Heart className={`w-4 h-4 ${inWishlist ? 'fill-current' : ''}`} />
                   </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 pt-1">
+                <div className="grid grid-cols-2 gap-2.5 pt-1">
                   <button
                     onClick={handleAddToCart}
                     disabled={product.stock === 0}
-                    className="w-full py-3.5 px-4 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold rounded-xl flex items-center justify-center gap-2 transition disabled:opacity-50 text-xs sm:text-sm"
+                    className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 text-slate-900 font-semibold border border-slate-300 rounded-md flex items-center justify-center gap-1.5 transition disabled:opacity-40 text-xs"
                   >
-                    <ShoppingBag className="w-4 h-4" />
+                    <ShoppingBag className="w-3.5 h-3.5" />
                     <span>Add to Bag</span>
                   </button>
 
                   <button
                     onClick={handleBuyNow}
                     disabled={product.stock === 0}
-                    className="w-full py-3.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 transition disabled:opacity-50 text-xs sm:text-sm"
+                    className="w-full py-2.5 px-4 bg-slate-900 hover:bg-slate-800 text-white font-semibold rounded-md transition disabled:opacity-40 text-xs"
                   >
                     Buy Now
                   </button>
@@ -318,13 +321,13 @@ export const ProductDetailModal: React.FC = () => {
               </div>
 
               {/* Guarantees Box */}
-              <div className="grid grid-cols-3 gap-2 pt-3 border-t border-slate-100 text-[11px] text-slate-600">
+              <div className="grid grid-cols-3 gap-2 pt-3 border-t border-slate-200 text-[11px] text-slate-500">
                 <div className="flex items-center gap-1.5">
-                  <Truck className="w-4 h-4 text-indigo-600 shrink-0" />
+                  <Truck className="w-3.5 h-3.5 text-slate-600 shrink-0" />
                   <span>Free shipping &gt;$100</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <RotateCcw className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <RotateCcw className="w-3.5 h-3.5 text-slate-600 shrink-0" />
                   <span>30-Day returns</span>
                 </div>
                 <div className="flex items-center gap-1.5">

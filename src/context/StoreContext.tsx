@@ -48,6 +48,7 @@ interface StoreContextType {
   filters: FilterState;
   toasts: ToastMessage[];
   isAuthLoading: boolean;
+  isProductsLoading: boolean;
 
   // UI states
   activeView: 'shop' | 'admin' | 'orders' | 'wishlist';
@@ -128,6 +129,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [isProductsLoading, setIsProductsLoading] = useState(true);
 
   // Cart
   const [cart, setCart] = useState<CartItem[]>(() => {
@@ -276,16 +278,19 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           } catch (seedErr) {
             console.error('Failed to seed products to Firestore:', seedErr);
           }
+          setIsProductsLoading(false);
         } else {
           const loadedProducts = snapshot.docs.map((docSnap) => ({
             id: docSnap.id,
             ...(docSnap.data() as Omit<Product, 'id'>)
           }));
           setProducts(loadedProducts);
+          setIsProductsLoading(false);
         }
       },
       (err) => {
         console.warn('Firestore products snapshot listener:', err);
+        setIsProductsLoading(false);
       }
     );
 
@@ -353,8 +358,25 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // Cart operations
   const addToCart = (product: Product, quantity = 1) => {
+    // Live stock verification against latest catalog
+    const liveProduct = products.find((p) => p.id === product.id) || product;
+    if (liveProduct.stock <= 0) {
+      addToast('Item Sold Out', `${liveProduct.name} is currently out of stock.`, 'error');
+      return;
+    }
+
+    const existing = cart.find((item) => item.product.id === product.id);
+    const currentCartQty = existing ? existing.quantity : 0;
+    if (currentCartQty + quantity > liveProduct.stock) {
+      addToast(
+        'Inventory Limit',
+        `Only ${liveProduct.stock} in stock. You already have ${currentCartQty} in your bag.`,
+        'error'
+      );
+      return;
+    }
+
     setCart((prev) => {
-      const existing = prev.find((item) => item.product.id === product.id);
       if (existing) {
         return prev.map((item) =>
           item.product.id === product.id
@@ -362,9 +384,9 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             : item
         );
       }
-      return [...prev, { product, quantity }];
+      return [...prev, { product: liveProduct, quantity }];
     });
-    addToast(`Added to Bag`, `${product.name} (x${quantity}) has been added to your shopping cart.`);
+    addToast(`Added to Bag`, `${product.name} (x${quantity}) added.`);
   };
 
   const removeFromCart = (productId: string) => {
@@ -380,6 +402,17 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       removeFromCart(productId);
       return;
     }
+
+    const liveProduct = products.find((p) => p.id === productId);
+    if (liveProduct && quantity > liveProduct.stock) {
+      addToast(
+        'Stock Limit Reached',
+        `Only ${liveProduct.stock} items available for "${liveProduct.name}".`,
+        'error'
+      );
+      return;
+    }
+
     setCart((prev) =>
       prev.map((item) =>
         item.product.id === productId ? { ...item, quantity } : item
@@ -686,6 +719,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         filters,
         toasts,
         isAuthLoading,
+        isProductsLoading,
         activeView,
         activeProductDetail,
         isCartOpen,
