@@ -27,7 +27,8 @@ import {
   deleteDoc,
   collection,
   onSnapshot,
-  writeBatch
+  writeBatch,
+  runTransaction
 } from 'firebase/firestore';
 
 export interface ToastMessage {
@@ -183,22 +184,25 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           const userDocRef = doc(db, 'users', fbUser.uid);
           const userSnap = await getDoc(userDocRef);
 
-          let userRole: 'customer' | 'admin' =
-            fbUser.email === 'admin@novamart.store' || fbUser.email?.toLowerCase().includes('admin')
-              ? 'admin'
-              : 'customer';
-
+          let userRole: 'customer' | 'admin' = 'customer';
           let loadedWishlist: string[] = wishlist;
 
           if (userSnap.exists()) {
             const data = userSnap.data();
-            if (data.role) userRole = data.role;
+            // Role is strictly read from Firestore server document or designated root owner email
+            if (data.role === 'admin' || fbUser.email === 'wilberofficial2001@gmail.com') {
+              userRole = 'admin';
+            }
             if (Array.isArray(data.wishlist) && data.wishlist.length > 0) {
               loadedWishlist = data.wishlist;
               setWishlist(data.wishlist);
             }
           } else {
-            // First time user, save to Firestore
+            // First time self-registration: strictly default to customer unless verified root admin
+            if (fbUser.email === 'wilberofficial2001@gmail.com') {
+              userRole = 'admin';
+            }
+
             await setDoc(
               userDocRef,
               {
@@ -437,69 +441,120 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
-  // Order Placement with Firestore Persistence
+  // Order Placement with Atomic Firestore Transaction
   const placeOrder = async (
     address: ShippingAddress,
     paymentMethod: string,
     shippingCost: number
   ): Promise<Order> => {
-    const subtotal = cartSubtotal;
-    const discount = cartDiscount;
-    const tax = Math.round((subtotal - discount) * 0.08 * 100) / 100;
-    const total = Math.max(0, Math.round((subtotal - discount + shippingCost + tax) * 100) / 100);
+    if (cart.length === 0) {
+      throw new Error('Your shopping cart is empty.');
+    }
 
     const randomNum = Math.floor(1000 + Math.random() * 9000);
     const orderNumber = `NM-2026-${randomNum}`;
     const trackingNum = `TRK-${Math.floor(100000000 + Math.random() * 900000000)}`;
+    const orderId = `ord-${Date.now()}`;
+    const orderDocRef = doc(db, 'orders', orderId);
 
-    const newOrder: Order = {
-      id: `ord-${Date.now()}`,
-      userId: currentUser?.id || 'guest',
-      orderNumber,
-      date: new Date().toISOString(),
-      items: [...cart],
-      subtotal,
-      discount,
-      shipping: shippingCost,
-      tax,
-      total,
-      status: 'Pending',
-      shippingAddress: address,
-      paymentMethod,
-      estimatedDelivery: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-      }),
-      trackingNumber: trackingNum,
-      carrier: shippingCost > 15 ? 'FedEx Priority' : 'DHL Standard'
-    };
+    // Atomic transaction: reads live prices and stock, verifies availability,
+    // decrements stock, and commits order simultaneously.
+    const validatedOrder = await runTransaction(db, async (transaction) => {
+      let validatedSubtotal = 0;
+      const validatedItems: CartItem[] = [];
+      const stockUpdates: { ref: any; newStock: number }[] = [];
 
-    // Decrease stock of bought products in state and Firestore
-    cart.forEach(async (item) => {
-      const prod = products.find((p) => p.id === item.product.id);
-      if (prod) {
-        const newStock = Math.max(0, prod.stock - item.quantity);
-        try {
-          await updateDoc(doc(db, 'products', prod.id), { stock: newStock });
-        } catch (e) {
-          console.warn('Could not update product stock in Firestore:', e);
+      for (const item of cart) {
+        const productRef = doc(db, 'products', item.product.id);
+        const productSnap = await transaction.get(productRef);
+
+        if (!productSnap.exists()) {
+          throw new Error(`Item "${item.product.name}" is no longer available.`);
+        }
+
+        const liveData = productSnap.data() as Product;
+        const currentStock = typeof liveData.stock === 'number' ? liveData.stock : 0;
+
+        if (currentStock < item.quantity) {
+          throw new Error(
+            `Insufficient stock for "${liveData.name}". Available: ${currentStock}, Requested: ${item.quantity}.`
+          );
+        }
+
+        // Live verified price from Firestore
+        const livePrice = typeof liveData.price === 'number' ? liveData.price : item.product.price;
+        validatedSubtotal += livePrice * item.quantity;
+
+        const remainingStock = currentStock - item.quantity;
+        validatedItems.push({
+          ...item,
+          product: {
+            ...item.product,
+            price: livePrice,
+            stock: remainingStock
+          }
+        });
+
+        stockUpdates.push({
+          ref: productRef,
+          newStock: remainingStock
+        });
+      }
+
+      // Validated discount calculation
+      let discount = 0;
+      if (appliedCoupon) {
+        if (!appliedCoupon.minSpend || validatedSubtotal >= appliedCoupon.minSpend) {
+          if (appliedCoupon.discountPercent) {
+            discount = (validatedSubtotal * appliedCoupon.discountPercent) / 100;
+          } else if (appliedCoupon.discountAmount) {
+            discount = appliedCoupon.discountAmount;
+          }
         }
       }
+
+      const tax = Math.round((validatedSubtotal - discount) * 0.08 * 100) / 100;
+      const total = Math.max(0, Math.round((validatedSubtotal - discount + shippingCost + tax) * 100) / 100);
+
+      const orderPayload: Order = {
+        id: orderId,
+        userId: currentUser?.id || (auth.currentUser?.uid ?? 'guest'),
+        orderNumber,
+        date: new Date().toISOString(),
+        items: validatedItems,
+        subtotal: validatedSubtotal,
+        discount,
+        shipping: shippingCost,
+        tax,
+        total,
+        status: 'Pending',
+        shippingAddress: address,
+        paymentMethod,
+        estimatedDelivery: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric'
+        }),
+        trackingNumber: trackingNum,
+        carrier: shippingCost > 15 ? 'FedEx Priority' : 'DHL Standard'
+      };
+
+      // 1. Decrement stock atomically
+      for (const update of stockUpdates) {
+        transaction.update(update.ref, { stock: update.newStock });
+      }
+
+      // 2. Write order atomically
+      transaction.set(orderDocRef, orderPayload);
+
+      return orderPayload;
     });
 
-    // Save order in Firestore
-    try {
-      await setDoc(doc(db, 'orders', newOrder.id), newOrder);
-    } catch (firestoreErr) {
-      console.error('Could not persist order to Firestore:', firestoreErr);
-    }
-
-    setOrders((prev) => [newOrder, ...prev]);
+    setOrders((prev) => [validatedOrder, ...prev]);
     clearCart();
-    setActiveOrderConfirmation(newOrder);
-    addToast('Order Placed Successfully!', `Order #${orderNumber} has been persisted to Firestore.`, 'success');
-    return newOrder;
+    setActiveOrderConfirmation(validatedOrder);
+    addToast('Order Placed Successfully!', `Order #${orderNumber} confirmed with verified pricing & stock.`, 'success');
+    return validatedOrder;
   };
 
   const updateOrderStatus = async (orderId: string, newStatus: OrderStatus) => {

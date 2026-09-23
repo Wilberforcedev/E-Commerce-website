@@ -3,19 +3,31 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { GoogleGenAI } from '@google/genai';
+import rateLimit from 'express-rate-limit';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Rate limiter for audio transcription to safeguard Gemini API usage
+const transcribeLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes window
+  max: 30, // Max 30 requests per IP per window
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: 'Too many transcription requests from this IP. Please try again in a few minutes.'
+  }
+});
 
 async function startServer() {
   const app = express();
   const PORT = Number(process.env.PORT) || 3000;
 
   app.use(cors());
-  app.use(express.json({ limit: '25mb' }));
+  app.use(express.json({ limit: '1mb' }));
 
-  // Audio transcription endpoint with gemini-3.5-transcribe
-  app.post('/api/transcribe', async (req, res) => {
+  // Audio transcription endpoint with gemini-3.5-transcribe, rate-limited and route-specific 25mb body limit
+  app.post('/api/transcribe', transcribeLimiter, express.json({ limit: '25mb' }), async (req, res) => {
     try {
       const { audioBase64, mimeType } = req.body;
       if (!audioBase64) {
