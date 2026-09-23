@@ -26,6 +26,8 @@ import {
   updateDoc,
   deleteDoc,
   collection,
+  query,
+  where,
   onSnapshot,
   writeBatch,
   runTransaction
@@ -267,7 +269,11 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       productsCol,
       async (snapshot) => {
         if (snapshot.empty) {
-          // Seed initial products to Firestore
+          // Immediately populate local state so visitors see the catalog
+          setProducts(INITIAL_PRODUCTS);
+          setIsProductsLoading(false);
+
+          // Seed catalog into Firestore
           try {
             const batch = writeBatch(db);
             INITIAL_PRODUCTS.forEach((prod) => {
@@ -276,9 +282,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             });
             await batch.commit();
           } catch (seedErr) {
-            console.error('Failed to seed products to Firestore:', seedErr);
+            console.warn('Initial product catalog sync notice:', seedErr);
           }
-          setIsProductsLoading(false);
         } else {
           const loadedProducts = snapshot.docs.map((docSnap) => ({
             id: docSnap.id,
@@ -290,6 +295,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       },
       (err) => {
         console.warn('Firestore products snapshot listener:', err);
+        setProducts(INITIAL_PRODUCTS);
         setIsProductsLoading(false);
       }
     );
@@ -299,39 +305,53 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // 3. Synchronize Orders Collection from Firestore
   useEffect(() => {
-    const ordersCol = collection(db, 'orders');
+    // Only query Firestore orders if user is authenticated
+    if (!auth.currentUser && !currentUser) {
+      setOrders(INITIAL_ORDERS);
+      return;
+    }
+
+    let ordersQuery;
+    if (currentUser?.role === 'admin') {
+      ordersQuery = collection(db, 'orders');
+    } else if (currentUser?.id) {
+      ordersQuery = query(collection(db, 'orders'), where('userId', '==', currentUser.id));
+    } else {
+      setOrders(INITIAL_ORDERS);
+      return;
+    }
+
     const unsubscribeOrders = onSnapshot(
-      ordersCol,
+      ordersQuery,
       async (snapshot) => {
-        if (snapshot.empty) {
-          // Seed initial orders to Firestore so tracking works
+        if (!snapshot.empty) {
+          const loadedOrders = snapshot.docs.map((docSnap) => ({
+            id: docSnap.id,
+            ...(docSnap.data() as Omit<Order, 'id'>)
+          }));
+          loadedOrders.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+          setOrders(loadedOrders);
+        } else if (currentUser?.role === 'admin') {
+          // Admin sees empty orders; seed initial demo orders
           try {
             const batch = writeBatch(db);
             INITIAL_ORDERS.forEach((order) => {
               const docRef = doc(db, 'orders', order.id);
               batch.set(docRef, order);
             });
-            await batch.commit();
+            batch.commit().catch((e) => console.warn('Could not seed initial orders:', e));
           } catch (seedErr) {
-            console.error('Failed to seed orders to Firestore:', seedErr);
+            console.warn('Initial order sync notice:', seedErr);
           }
-        } else {
-          const loadedOrders = snapshot.docs.map((docSnap) => ({
-            id: docSnap.id,
-            ...(docSnap.data() as Omit<Order, 'id'>)
-          }));
-          // Sort newest first
-          loadedOrders.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-          setOrders(loadedOrders);
         }
       },
       (err) => {
-        console.warn('Firestore orders snapshot listener:', err);
+        console.warn('Firestore orders listener notice:', err);
       }
     );
 
     return () => unsubscribeOrders();
-  }, []);
+  }, [currentUser?.id, currentUser?.role]);
 
   // Sync cart & wishlist to local storage
   useEffect(() => {
