@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: novamart-ecommerce
+    env: node
+    plan: starter
+    region: oregon
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: GEMINI_API_KEY
+        sync: false # Set securely in Render dashboard
+      - key: CORS_ORIGIN
+        sync: false # e.g. https://your-domain.com
+      - key: VITE_STORE_NAME
+        value: NovaMart
+      - key: VITE_CURRENCY_SYMBOL
+        value: $

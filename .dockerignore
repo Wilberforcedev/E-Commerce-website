@@ -1,0 +1,17 @@
+node_modules
+dist
+.git
+.github
+.env
+.env.*
+!.env.example
+*.log
+firebase-debug.log*
+.DS_Store
+.idea
+.vscode
+Dockerfile*
+docker-compose*
+README.md
+render.yaml
+railway.json

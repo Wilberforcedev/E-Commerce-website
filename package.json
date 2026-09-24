@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx server.ts",
     "build": "tsc && vite build",
-    "start": "node server.ts",
+    "start": "node --import tsx server.ts",
     "preview": "vite preview --host 0.0.0.0 --port 3000"
   },
   "dependencies": {
@@ -18,7 +18,8 @@
     "firebase": "^12.19.0",
     "lucide-react": "^1.16.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "tsx": "^4.23.15"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.9",
@@ -29,7 +30,6 @@
     "@types/react-dom": "^19.0.4",
     "@vitejs/plugin-react": "^4.3.4",
     "tailwindcss": "^4.0.9",
-    "tsx": "^4.23.15",
     "typescript": "^5.7.3",
     "vite": "^6.2.0"
   }
