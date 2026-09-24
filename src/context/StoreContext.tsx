@@ -105,6 +105,12 @@ interface StoreContextType {
   addToast: (title: string, message?: string, type?: 'success' | 'error' | 'info') => void;
   removeToast: (id: string) => void;
 
+  // Recent Searches (persisting last 3 queries)
+  recentSearches: string[];
+  addRecentSearch: (query: string) => void;
+  removeRecentSearch: (query: string) => void;
+  clearRecentSearches: () => void;
+
   // Calculated helpers
   cartSubtotal: number;
   cartDiscount: number;
@@ -117,6 +123,7 @@ const STORAGE_KEYS = {
   CART: 'novamart_cart_v2',
   WISHLIST: 'novamart_wishlist_v2',
   USER_BACKUP: 'novamart_user_v2',
+  RECENT_SEARCHES: 'novamart_recent_searches_v1',
 };
 
 const DEFAULT_FILTERS: FilterState = {
@@ -169,6 +176,71 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+  // Recent Searches state (persisting user's last 3 search queries in localStorage)
+  const [recentSearches, setRecentSearches] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.RECENT_SEARCHES);
+      if (!saved) return [];
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        return parsed
+          .filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
+          .slice(0, 3);
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  });
+
+  const addRecentSearch = (query: string) => {
+    const trimmed = query.trim();
+    if (!trimmed || trimmed.length < 2) return;
+
+    setRecentSearches((prev) => {
+      const filtered = prev.filter((item) => item.toLowerCase() !== trimmed.toLowerCase());
+      const updated = [trimmed, ...filtered].slice(0, 3);
+      try {
+        localStorage.setItem(STORAGE_KEYS.RECENT_SEARCHES, JSON.stringify(updated));
+      } catch (err) {
+        console.warn('Failed to save recent search to localStorage:', err);
+      }
+      return updated;
+    });
+  };
+
+  const removeRecentSearch = (query: string) => {
+    setRecentSearches((prev) => {
+      const updated = prev.filter((item) => item.toLowerCase() !== query.toLowerCase());
+      try {
+        localStorage.setItem(STORAGE_KEYS.RECENT_SEARCHES, JSON.stringify(updated));
+      } catch (err) {
+        console.warn('Failed to update recent searches:', err);
+      }
+      return updated;
+    });
+  };
+
+  const clearRecentSearches = () => {
+    setRecentSearches([]);
+    try {
+      localStorage.removeItem(STORAGE_KEYS.RECENT_SEARCHES);
+    } catch (err) {
+      console.warn('Failed to clear recent searches:', err);
+    }
+  };
+
+  // Debounced auto-persist search query into recent searches (max 3 in localStorage)
+  useEffect(() => {
+    const query = filters.search.trim();
+    if (query.length >= 2) {
+      const timer = setTimeout(() => {
+        addRecentSearch(query);
+      }, 750);
+      return () => clearTimeout(timer);
+    }
+  }, [filters.search]);
 
   // Open product detail with graceful skeleton loading support
   const openProductDetail = async (productOrId: Product | string) => {
@@ -811,6 +883,10 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         logout,
         addToast,
         removeToast,
+        recentSearches,
+        addRecentSearch,
+        removeRecentSearch,
+        clearRecentSearches,
         cartSubtotal,
         cartDiscount,
         cartCount

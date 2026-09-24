@@ -30,7 +30,8 @@ export const Navbar: React.FC = () => {
     setActiveView,
     logout,
     filters,
-    setFilters
+    setFilters,
+    addRecentSearch
   } = useStore();
 
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -104,6 +105,11 @@ export const Navbar: React.FC = () => {
                 placeholder="Search products, audio, hardware..."
                 value={filters.search}
                 onChange={handleSearchChange}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && filters.search.trim()) {
+                    addRecentSearch(filters.search.trim());
+                  }
+                }}
                 className="w-full bg-slate-50 hover:bg-white focus:bg-white pl-9 pr-14 py-2 text-xs rounded-md border border-slate-200 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 outline-none transition placeholder:text-slate-400 text-slate-900"
               />
               <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
@@ -122,6 +128,7 @@ export const Navbar: React.FC = () => {
                   subtitle="Speak a product name or category into your microphone"
                   onTranscribe={(text) => {
                     setFilters((prev) => ({ ...prev, search: text }));
+                    addRecentSearch(text);
                     if (activeView !== 'shop') setActiveView('shop');
                   }}
                 />
@@ -312,6 +319,11 @@ export const Navbar: React.FC = () => {
               placeholder="Search products..."
               value={filters.search}
               onChange={handleSearchChange}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && filters.search.trim()) {
+                  addRecentSearch(filters.search.trim());
+                }
+              }}
               className="w-full bg-slate-100 pl-10 pr-14 py-2 text-sm rounded-full border border-transparent focus:border-indigo-500 focus:bg-white outline-none"
             />
             <div className="absolute right-2 top-1/2 -translate-y-1/2">
@@ -321,6 +333,7 @@ export const Navbar: React.FC = () => {
                 subtitle="Speak a product name or category into your microphone"
                 onTranscribe={(text) => {
                   setFilters((prev) => ({ ...prev, search: text }));
+                  addRecentSearch(text);
                   if (activeView !== 'shop') setActiveView('shop');
                 }}
               />

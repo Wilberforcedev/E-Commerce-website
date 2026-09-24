@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useStore } from '../context/StoreContext';
 import { ProductCard } from './ProductCard';
 import { ProductGridSkeleton } from './skeletons/ProductGridSkeleton';
+import { RecentSearches } from './RecentSearches';
 import { CATEGORIES } from '../data/initialData';
 import { SortOption } from '../types';
 import {
@@ -12,7 +13,7 @@ import {
 } from 'lucide-react';
 
 export const ProductGrid: React.FC = () => {
-  const { products, filters, setFilters, isProductsLoading } = useStore();
+  const { products, filters, setFilters, isProductsLoading, addRecentSearch } = useStore();
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   // Filter & Sort Logic
@@ -90,56 +91,61 @@ export const ProductGrid: React.FC = () => {
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       
       {/* Top Controls Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-slate-200">
-        <div>
-          <div className="flex items-center gap-2.5">
-            <h2 className="text-xl font-bold text-slate-900 tracking-tight">
-              {filters.category === 'All' ? 'Curated Catalog' : `${filters.category}`}
-            </h2>
-            <span className="bg-slate-100 border border-slate-200 text-slate-600 font-mono text-[11px] px-2 py-0.5 rounded">
-              {isProductsLoading ? 'Loading...' : `${filteredProducts.length} items`}
-            </span>
-          </div>
-          {filters.search && (
-            <p className="text-xs text-slate-500 mt-1">
-              Showing results for "<span className="text-slate-900 font-medium">{filters.search}</span>"
-            </p>
-          )}
-        </div>
-
-        <div className="flex items-center gap-3">
-          {/* Mobile Filter Toggle */}
-          <button
-            onClick={() => setIsMobileFilterOpen(true)}
-            className="lg:hidden flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-3 py-1.5 rounded-md text-xs font-semibold hover:bg-slate-50"
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5 text-slate-600" />
-            <span>Filters</span>
-            {hasActiveFilters && (
-              <span className="w-1.5 h-1.5 rounded-full bg-indigo-600" />
+      <div className="pb-5 border-b border-slate-200">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+                {filters.category === 'All' ? 'Curated Catalog' : `${filters.category}`}
+              </h2>
+              <span className="bg-slate-100 border border-slate-200 text-slate-600 font-mono text-[11px] px-2 py-0.5 rounded">
+                {isProductsLoading ? 'Loading...' : `${filteredProducts.length} items`}
+              </span>
+            </div>
+            {filters.search && (
+              <p className="text-xs text-slate-500 mt-1">
+                Showing results for "<span className="text-slate-900 font-medium">{filters.search}</span>"
+              </p>
             )}
-          </button>
+          </div>
 
-          {/* Sort Selector */}
-          <div className="flex items-center gap-2 ml-auto">
-            <label htmlFor="sort-selector" className="text-xs text-slate-500 font-medium hidden sm:inline">
-              Sort:
-            </label>
-            <select
-              id="sort-selector"
-              value={filters.sortBy}
-              onChange={(e) => setFilters((p) => ({ ...p, sortBy: e.target.value as SortOption }))}
-              aria-label="Sort products"
-              className="bg-white border border-slate-200 text-slate-800 text-xs font-medium rounded-md px-3 py-1.5 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 cursor-pointer"
+          <div className="flex items-center gap-3">
+            {/* Mobile Filter Toggle */}
+            <button
+              onClick={() => setIsMobileFilterOpen(true)}
+              className="lg:hidden flex items-center gap-2 bg-white border border-slate-200 text-slate-700 px-3 py-1.5 rounded-md text-xs font-semibold hover:bg-slate-50"
             >
-              <option value="featured">Featured First</option>
-              <option value="price-asc">Price: Low to High</option>
-              <option value="price-desc">Price: High to Low</option>
-              <option value="rating">Highest Rated</option>
-              <option value="newest">Newest Additions</option>
-            </select>
+              <SlidersHorizontal className="w-3.5 h-3.5 text-slate-600" />
+              <span>Filters</span>
+              {hasActiveFilters && (
+                <span className="w-1.5 h-1.5 rounded-full bg-indigo-600" />
+              )}
+            </button>
+
+            {/* Sort Selector */}
+            <div className="flex items-center gap-2 ml-auto">
+              <label htmlFor="sort-selector" className="text-xs text-slate-500 font-medium hidden sm:inline">
+                Sort:
+              </label>
+              <select
+                id="sort-selector"
+                value={filters.sortBy}
+                onChange={(e) => setFilters((p) => ({ ...p, sortBy: e.target.value as SortOption }))}
+                aria-label="Sort products"
+                className="bg-white border border-slate-200 text-slate-800 text-xs font-medium rounded-md px-3 py-1.5 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 cursor-pointer"
+              >
+                <option value="featured">Featured First</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+                <option value="rating">Highest Rated</option>
+                <option value="newest">Newest Additions</option>
+              </select>
+            </div>
           </div>
         </div>
+
+        {/* Recent Searches Quick Navigation Chips */}
+        <RecentSearches className="mt-3.5 pt-3 border-t border-slate-100" variant="chips" />
       </div>
 
       {/* Main Layout: Filters (Left) + Products (Right) */}
@@ -163,6 +169,40 @@ export const ProductGrid: React.FC = () => {
                 </button>
               )}
             </div>
+
+            {/* Keyword Search */}
+            <div>
+              <h4 className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                Keyword Search
+              </h4>
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Filter catalog..."
+                  value={filters.search}
+                  onChange={(e) => setFilters((p) => ({ ...p, search: e.target.value }))}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && filters.search.trim()) {
+                      addRecentSearch(filters.search.trim());
+                    }
+                  }}
+                  className="w-full bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-600 text-xs rounded-md pl-8 pr-7 py-1.5 outline-none transition text-slate-900 placeholder:text-slate-400"
+                />
+                {filters.search && (
+                  <button
+                    onClick={() => setFilters((p) => ({ ...p, search: '' }))}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                    title="Clear search"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Recent Searches Sidebar Section */}
+            <RecentSearches variant="sidebar" />
 
             {/* Category Filter */}
             <div>
@@ -285,6 +325,7 @@ export const ProductGrid: React.FC = () => {
                 <RotateCcw className="w-3.5 h-3.5" />
                 Reset Filters
               </button>
+              <RecentSearches variant="empty-state" />
             </div>
           )}
         </div>
@@ -308,6 +349,39 @@ export const ProductGrid: React.FC = () => {
                 <X className="w-4 h-4" />
               </button>
             </div>
+
+            {/* Keyword Search in Mobile Drawer */}
+            <div>
+              <h4 className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                Keyword Search
+              </h4>
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Filter catalog..."
+                  value={filters.search}
+                  onChange={(e) => setFilters((p) => ({ ...p, search: e.target.value }))}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && filters.search.trim()) {
+                      addRecentSearch(filters.search.trim());
+                    }
+                  }}
+                  className="w-full bg-slate-50 border border-slate-200 text-xs rounded-md pl-8 pr-7 py-1.5 outline-none text-slate-900"
+                />
+                {filters.search && (
+                  <button
+                    onClick={() => setFilters((p) => ({ ...p, search: '' }))}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Recent Searches in Mobile Drawer */}
+            <RecentSearches variant="sidebar" />
 
             {/* Category */}
             <div>
