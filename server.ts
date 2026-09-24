@@ -12,7 +12,7 @@ async function startServer() {
   const PORT = Number(process.env.PORT) || 3000;
 
   // 1. CORS Configuration: Locked down in production with environment variable support
-  const allowedOriginsEnv = process.env.CORS_ORIGIN;
+  const allowedOriginsEnv = process.env.ALLOWED_ORIGIN || process.env.CORS_ORIGIN;
   const allowedOrigins = allowedOriginsEnv
     ? allowedOriginsEnv.split(',').map((o) => o.trim()).filter(Boolean)
     : [];

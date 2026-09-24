@@ -14,8 +14,8 @@ services:
         value: 3000
       - key: GEMINI_API_KEY
         sync: false # Set securely in Render dashboard
-      - key: CORS_ORIGIN
-        sync: false # e.g. https://your-domain.com
+      - key: ALLOWED_ORIGIN
+        sync: false # e.g. https://your-production-domain.com
       - key: VITE_STORE_NAME
         value: NovaMart
       - key: VITE_CURRENCY_SYMBOL
