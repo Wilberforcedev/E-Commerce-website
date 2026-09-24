@@ -16,6 +16,7 @@ export const OrderTrackerModal: React.FC = () => {
     isOrderTrackerOpen,
     setIsOrderTrackerOpen,
     orders,
+    openProductDetail,
     setActiveProductDetail
   } = useStore();
 
@@ -204,7 +205,7 @@ export const OrderTrackerModal: React.FC = () => {
                       key={i}
                       onClick={() => {
                         setIsOrderTrackerOpen(false);
-                        setActiveProductDetail(item.product);
+                        openProductDetail(item.product);
                       }}
                       className="p-3 flex items-center gap-3 hover:bg-slate-50 cursor-pointer transition text-xs"
                     >

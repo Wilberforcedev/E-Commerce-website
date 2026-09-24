@@ -12,6 +12,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
     addToCart,
     toggleWishlist,
     isInWishlist,
+    openProductDetail,
     setActiveProductDetail
   } = useStore();
 
@@ -46,7 +47,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
   return (
     <article
-      onClick={() => setActiveProductDetail(product)}
+      onClick={() => openProductDetail(product)}
       className="group bg-white rounded-lg border border-slate-200 hover:border-slate-400 transition-colors flex flex-col overflow-hidden cursor-pointer"
       tabIndex={0}
       role="button"
@@ -54,7 +55,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          setActiveProductDetail(product);
+          openProductDetail(product);
         }
       }}
     >

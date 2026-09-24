@@ -3,7 +3,7 @@ import { useStore } from '../context/StoreContext';
 import { ArrowRight, ShieldCheck, Truck, RotateCcw, Award } from 'lucide-react';
 
 export const HeroBanner: React.FC = () => {
-  const { setFilters, setActiveProductDetail, products } = useStore();
+  const { setFilters, openProductDetail, products } = useStore();
 
   const featuredProduct = products.find((p) => p.id === 'prod-1') || products[0];
 
@@ -79,7 +79,7 @@ export const HeroBanner: React.FC = () => {
                 </div>
 
                 <div
-                  onClick={() => setActiveProductDetail(featuredProduct)}
+                  onClick={() => openProductDetail(featuredProduct)}
                   className="aspect-4/3 w-full bg-slate-950 rounded-md overflow-hidden mb-4 cursor-pointer relative group border border-slate-800/80"
                 >
                   <img
@@ -117,7 +117,7 @@ export const HeroBanner: React.FC = () => {
                     </div>
 
                     <button
-                      onClick={() => setActiveProductDetail(featuredProduct)}
+                      onClick={() => openProductDetail(featuredProduct)}
                       className="text-xs font-semibold text-white bg-slate-800 hover:bg-slate-700 px-3 py-1.5 rounded-md transition"
                     >
                       Specifications

@@ -51,6 +51,7 @@ interface StoreContextType {
   toasts: ToastMessage[];
   isAuthLoading: boolean;
   isProductsLoading: boolean;
+  isProductDetailLoading: boolean;
 
   // UI states
   activeView: 'shop' | 'admin' | 'orders' | 'wishlist';
@@ -65,6 +66,8 @@ interface StoreContextType {
   // Setters
   setActiveView: (view: 'shop' | 'admin' | 'orders' | 'wishlist') => void;
   setActiveProductDetail: (product: Product | null) => void;
+  setIsProductDetailLoading: (loading: boolean) => void;
+  openProductDetail: (productOrId: Product | string) => Promise<void>;
   setIsCartOpen: (open: boolean) => void;
   setIsCheckoutOpen: (open: boolean) => void;
   setIsAuthOpen: (open: boolean) => void;
@@ -156,6 +159,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   // UI state
   const [activeView, setActiveView] = useState<'shop' | 'admin' | 'orders' | 'wishlist'>('shop');
   const [activeProductDetail, setActiveProductDetail] = useState<Product | null>(null);
+  const [isProductDetailLoading, setIsProductDetailLoading] = useState<boolean>(false);
   const [isCartOpen, setIsCartOpen] = useState<boolean>(false);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState<boolean>(false);
   const [isAuthOpen, setIsAuthOpen] = useState<boolean>(false);
@@ -165,6 +169,33 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+  // Open product detail with graceful skeleton loading support
+  const openProductDetail = async (productOrId: Product | string) => {
+    if (typeof productOrId === 'string') {
+      setIsProductDetailLoading(true);
+      setActiveProductDetail(null);
+      try {
+        const res = await fetch(`/api/products/${productOrId}`);
+        if (res.ok) {
+          const json = await res.json();
+          setActiveProductDetail(json.data || json);
+        } else {
+          const found = products.find((p) => p.id === productOrId) || null;
+          setActiveProductDetail(found);
+        }
+      } catch (err) {
+        console.warn('API product detail fetch note:', err);
+        const found = products.find((p) => p.id === productOrId) || null;
+        setActiveProductDetail(found);
+      } finally {
+        setIsProductDetailLoading(false);
+      }
+    } else {
+      setActiveProductDetail(productOrId);
+      setIsProductDetailLoading(false);
+    }
+  };
 
   // Toast Helper
   const addToast = (title: string, message?: string, type: 'success' | 'error' | 'info' = 'success') => {
@@ -740,6 +771,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         toasts,
         isAuthLoading,
         isProductsLoading,
+        isProductDetailLoading,
         activeView,
         activeProductDetail,
         isCartOpen,
@@ -750,6 +782,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         activeOrderConfirmation,
         setActiveView,
         setActiveProductDetail,
+        setIsProductDetailLoading,
+        openProductDetail,
         setIsCartOpen,
         setIsCheckoutOpen,
         setIsAuthOpen,

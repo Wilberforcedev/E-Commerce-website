@@ -1,10 +1,11 @@
 import React from 'react';
 import { useStore } from '../context/StoreContext';
 import { ProductCard } from './ProductCard';
+import { ProductGridSkeleton } from './skeletons/ProductGridSkeleton';
 import { Heart, ShoppingBag, ArrowLeft } from 'lucide-react';
 
 export const WishlistView: React.FC = () => {
-  const { wishlist, products, setActiveView, addToCart } = useStore();
+  const { wishlist, products, isProductsLoading, setActiveView, addToCart } = useStore();
 
   const wishlistProducts = products.filter((p) => wishlist.includes(p.id));
 
@@ -53,7 +54,9 @@ export const WishlistView: React.FC = () => {
         )}
       </div>
 
-      {wishlistProducts.length > 0 ? (
+      {isProductsLoading ? (
+        <ProductGridSkeleton count={4} className="xl:grid-cols-4" />
+      ) : wishlistProducts.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {wishlistProducts.map((prod) => (
             <ProductCard key={prod.id} product={prod} />

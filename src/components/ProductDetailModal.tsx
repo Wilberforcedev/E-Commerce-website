@@ -16,11 +16,14 @@ import {
   Mic
 } from 'lucide-react';
 import { VoiceMicButton } from './VoiceMicButton';
+import { ProductDetailSkeleton } from './skeletons/ProductDetailSkeleton';
 
 export const ProductDetailModal: React.FC = () => {
   const {
     activeProductDetail,
     setActiveProductDetail,
+    isProductDetailLoading,
+    setIsProductDetailLoading,
     addToCart,
     toggleWishlist,
     isInWishlist,
@@ -63,7 +66,18 @@ export const ProductDetailModal: React.FC = () => {
   const [newReviewComment, setNewReviewComment] = useState('');
   const [isAddingReview, setIsAddingReview] = useState(false);
 
-  if (!activeProductDetail) return null;
+  if (!activeProductDetail && !isProductDetailLoading) return null;
+
+  if (isProductDetailLoading || !activeProductDetail) {
+    return (
+      <ProductDetailSkeleton
+        onClose={() => {
+          setActiveProductDetail(null);
+          setIsProductDetailLoading(false);
+        }}
+      />
+    );
+  }
 
   const product = activeProductDetail;
   const inWishlist = isInWishlist(product.id);
