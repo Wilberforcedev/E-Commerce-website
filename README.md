@@ -8,7 +8,7 @@ A full-stack e-commerce app — React frontend, Express backend, Firebase Auth a
 - Search or leave a review by talking instead of typing (Gemini transcribes it)
 - Sign in with Google or email/password
 - Live inventory that stays in sync across users
-- Wishlists and order history, plus public order tracking by order ID
+- Wishlists, private order history, and order tracking for your own orders
 - An admin dashboard for managing products, stock, and order status
 - **Server-validated checkout** — the server reads current product records, recalculates the total, and commits the order and stock decrements atomically with Firestore update-time preconditions.
 
@@ -63,7 +63,7 @@ npm run dev
 
 Runs on `http://localhost:3000` — Express handles `/api/*`, Vite handles everything else with hot reload.
 
-On an empty Firestore database, sign in with an administrator account to seed the sample product catalog. The admin account must be designated in the Firestore user profile or match `STORE_ADMIN_EMAIL`.\n\nFor a production build:
+On an empty Firestore database, sign in with an administrator account to seed the sample product catalog. The admin account must be designated in the Firestore user profile or use the configured administrator email.\n\nFor a production build:
 
 ```bash
 npm run build
