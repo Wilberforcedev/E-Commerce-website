@@ -408,8 +408,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   // 3. Synchronize Orders Collection from Firestore
   useEffect(() => {
-    // Only query Firestore orders if user is authenticated
-    if (!auth.currentUser && !currentUser) {
+    // Firestore order access is available only to verified Firebase accounts.
+    if (!auth.currentUser) {
       setOrders([]);
       return;
     }
@@ -420,7 +420,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } else if (currentUser?.id) {
       ordersQuery = query(collection(db, 'orders'), where('userId', '==', currentUser.id));
     } else {
-      setOrders(INITIAL_ORDERS);
+      setOrders([]);
       return;
     }
 
