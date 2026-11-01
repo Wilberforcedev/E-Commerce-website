@@ -16,7 +16,7 @@ A full-stack e-commerce app — React frontend, Express backend, Firebase Auth a
 
 > The payment screen is currently a demo: it records the selected method but does not charge a card or PayPal account. Connect a payment provider before accepting real payments.
 
-- **Checkout runs on the server.** The client sends product IDs, quantities, address, shipping choice, payment type, and an optional coupon code. The server verifies any Firebase ID token, reads current prices and stock, applies known coupons, calculates shipping and tax, then commits the order and stock changes as one Firestore write with update-time preconditions.
+- **Checkout runs on the server.** The client sends product IDs, quantities, address, shipping choice, payment type, and an optional coupon code. The server verifies any Firebase ID token, reads current prices and stock, applies known coupons, calculates shipping and tax, then commits the order and stock changes as one Firestore write with update-time preconditions. Each checkout also uses an idempotency key, so retrying after a lost response returns the same order instead of decrementing stock again.
 - **Orders are private.** Firestore allows a signed-in customer to read only orders whose `userId` matches their Firebase UID. Admins can read all orders. Guest checkout returns its confirmation to that browser session, but guest orders cannot be fetched later.
 - **Catalog writes are restricted.** Customers can read products. Only admins can create, edit, seed, or delete products. Direct customer writes to orders and stock are denied.
 - **Admin API actions require a verified Firebase ID token and an admin role.** Server identity comes from the signed token and the server-side user profile, not a role supplied in a request body.
