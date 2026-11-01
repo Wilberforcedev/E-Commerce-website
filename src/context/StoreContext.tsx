@@ -9,7 +9,7 @@ import {
   OrderStatus,
   ShippingAddress
 } from '../types';
-import { INITIAL_PRODUCTS, INITIAL_ORDERS, INITIAL_COUPONS } from '../data/initialData';
+import { INITIAL_PRODUCTS, INITIAL_COUPONS } from '../data/initialData';
 import { auth, googleProvider, db } from '../firebase';
 import {
   signInWithPopup,
@@ -30,7 +30,6 @@ import {
   where,
   onSnapshot,
   writeBatch,
-  runTransaction
 } from 'firebase/firestore';
 
 export interface ToastMessage {
@@ -88,7 +87,7 @@ interface StoreContextType {
   applyCoupon: (code: string) => { success: boolean; message: string };
   removeCoupon: () => void;
 
-  placeOrder: (address: ShippingAddress, paymentMethod: string, shippingCost: number) => Promise<Order>;
+  placeOrder: (address: ShippingAddress, paymentMethod: string, shippingMethod: 'standard' | 'express' | 'overnight') => Promise<Order>;
   updateOrderStatus: (orderId: string, newStatus: OrderStatus) => Promise<void>;
 
   addProduct: (product: Omit<Product, 'id'>) => Promise<void>;
@@ -138,7 +137,7 @@ const DEFAULT_FILTERS: FilterState = {
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
-  const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [isProductsLoading, setIsProductsLoading] = useState(true);
@@ -247,26 +246,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (typeof productOrId === 'string') {
       setIsProductDetailLoading(true);
       setActiveProductDetail(null);
-      try {
-        const res = await fetch(`/api/products/${productOrId}`);
-        if (res.ok) {
-          const json = await res.json();
-          setActiveProductDetail(json.data || json);
-        } else {
-          const found = products.find((p) => p.id === productOrId) || null;
-          setActiveProductDetail(found);
-        }
-      } catch (err) {
-        console.warn('API product detail fetch note:', err);
-        const found = products.find((p) => p.id === productOrId) || null;
-        setActiveProductDetail(found);
-      } finally {
-        setIsProductDetailLoading(false);
-      }
-    } else {
-      setActiveProductDetail(productOrId);
+      const found = products.find((product) => product.id === productOrId) || null;
+      setActiveProductDetail(found);
       setIsProductDetailLoading(false);
+      return;
     }
+    setActiveProductDetail(productOrId);
+    setIsProductDetailLoading(false);
   };
 
   // Toast Helper
@@ -376,16 +362,17 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           setProducts(INITIAL_PRODUCTS);
           setIsProductsLoading(false);
 
-          // Seed catalog into Firestore
-          try {
-            const batch = writeBatch(db);
-            INITIAL_PRODUCTS.forEach((prod) => {
-              const docRef = doc(db, 'products', prod.id);
-              batch.set(docRef, prod);
-            });
-            await batch.commit();
-          } catch (seedErr) {
-            console.warn('Initial product catalog sync notice:', seedErr);
+          // Only an authenticated administrator can seed the initial catalog.
+          if (currentUser?.role === 'admin' && auth.currentUser) {
+            try {
+              const batch = writeBatch(db);
+              INITIAL_PRODUCTS.forEach((prod) => {
+                batch.set(doc(db, 'products', prod.id), prod);
+              });
+              await batch.commit();
+            } catch (seedErr) {
+              console.warn('Initial product catalog sync notice:', seedErr);
+            }
           }
         } else {
           const loadedProducts = snapshot.docs.map((docSnap) => ({
@@ -404,13 +391,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     );
 
     return () => unsubscribeProducts();
-  }, []);
+  }, [currentUser?.id, currentUser?.role]);
 
   // 3. Synchronize Orders Collection from Firestore
   useEffect(() => {
-    // Only query Firestore orders if user is authenticated
-    if (!auth.currentUser && !currentUser) {
-      setOrders(INITIAL_ORDERS);
+    // Firestore order access is available only to verified Firebase accounts.
+    if (!auth.currentUser) {
+      setOrders([]);
       return;
     }
 
@@ -420,7 +407,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     } else if (currentUser?.id) {
       ordersQuery = query(collection(db, 'orders'), where('userId', '==', currentUser.id));
     } else {
-      setOrders(INITIAL_ORDERS);
+      setOrders([]);
       return;
     }
 
@@ -434,18 +421,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           }));
           loadedOrders.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
           setOrders(loadedOrders);
-        } else if (currentUser?.role === 'admin') {
-          // Admin sees empty orders; seed initial demo orders
-          try {
-            const batch = writeBatch(db);
-            INITIAL_ORDERS.forEach((order) => {
-              const docRef = doc(db, 'orders', order.id);
-              batch.set(docRef, order);
-            });
-            batch.commit().catch((e) => console.warn('Could not seed initial orders:', e));
-          } catch (seedErr) {
-            console.warn('Initial order sync notice:', seedErr);
-          }
+        } else {
+          setOrders([]);
         }
       },
       (err) => {
@@ -597,119 +574,44 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
-  // Order Placement with Atomic Firestore Transaction
+  // Orders are created by the server, which verifies current product prices and stock.
   const placeOrder = async (
     address: ShippingAddress,
     paymentMethod: string,
-    shippingCost: number
+    shippingMethod: 'standard' | 'express' | 'overnight'
   ): Promise<Order> => {
-    if (cart.length === 0) {
-      throw new Error('Your shopping cart is empty.');
+    if (cart.length === 0) throw new Error('Your shopping cart is empty.');
+
+    const token = auth.currentUser ? await auth.currentUser.getIdToken() : null;
+    const response = await fetch('/api/orders', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({
+        items: cart.map(({ product, quantity, selectedColor, selectedSize }) => ({
+          productId: product.id,
+          quantity,
+          selectedColor,
+          selectedSize,
+        })),
+        shippingAddress: address,
+        shippingMethod,
+        paymentMethod: paymentMethod === 'paypal' ? 'paypal' : 'card',
+        couponCode: appliedCoupon?.code,
+      }),
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || !result?.data) {
+      throw new Error(result?.message || 'Unable to complete purchase. Please try again.');
     }
 
-    const randomNum = Math.floor(1000 + Math.random() * 9000);
-    const orderNumber = `NM-2026-${randomNum}`;
-    const trackingNum = `TRK-${Math.floor(100000000 + Math.random() * 900000000)}`;
-    const orderId = `ord-${Date.now()}`;
-    const orderDocRef = doc(db, 'orders', orderId);
-
-    // Atomic transaction: reads live prices and stock, verifies availability,
-    // decrements stock, and commits order simultaneously.
-    const validatedOrder = await runTransaction(db, async (transaction) => {
-      let validatedSubtotal = 0;
-      const validatedItems: CartItem[] = [];
-      const stockUpdates: { ref: any; newStock: number }[] = [];
-
-      for (const item of cart) {
-        const productRef = doc(db, 'products', item.product.id);
-        const productSnap = await transaction.get(productRef);
-
-        if (!productSnap.exists()) {
-          throw new Error(`Item "${item.product.name}" is no longer available.`);
-        }
-
-        const liveData = productSnap.data() as Product;
-        const currentStock = typeof liveData.stock === 'number' ? liveData.stock : 0;
-
-        if (currentStock < item.quantity) {
-          throw new Error(
-            `Insufficient stock for "${liveData.name}". Available: ${currentStock}, Requested: ${item.quantity}.`
-          );
-        }
-
-        // Live verified price from Firestore
-        const livePrice = typeof liveData.price === 'number' ? liveData.price : item.product.price;
-        validatedSubtotal += livePrice * item.quantity;
-
-        const remainingStock = currentStock - item.quantity;
-        validatedItems.push({
-          ...item,
-          product: {
-            ...item.product,
-            price: livePrice,
-            stock: remainingStock
-          }
-        });
-
-        stockUpdates.push({
-          ref: productRef,
-          newStock: remainingStock
-        });
-      }
-
-      // Validated discount calculation
-      let discount = 0;
-      if (appliedCoupon) {
-        if (!appliedCoupon.minSpend || validatedSubtotal >= appliedCoupon.minSpend) {
-          if (appliedCoupon.discountPercent) {
-            discount = (validatedSubtotal * appliedCoupon.discountPercent) / 100;
-          } else if (appliedCoupon.discountAmount) {
-            discount = appliedCoupon.discountAmount;
-          }
-        }
-      }
-
-      const tax = Math.round((validatedSubtotal - discount) * 0.08 * 100) / 100;
-      const total = Math.max(0, Math.round((validatedSubtotal - discount + shippingCost + tax) * 100) / 100);
-
-      const orderPayload: Order = {
-        id: orderId,
-        userId: currentUser?.id || (auth.currentUser?.uid ?? 'guest'),
-        orderNumber,
-        date: new Date().toISOString(),
-        items: validatedItems,
-        subtotal: validatedSubtotal,
-        discount,
-        shipping: shippingCost,
-        tax,
-        total,
-        status: 'Pending',
-        shippingAddress: address,
-        paymentMethod,
-        estimatedDelivery: new Date(Date.now() + 4 * 24 * 60 * 60 * 1000).toLocaleDateString('en-US', {
-          month: 'short',
-          day: 'numeric',
-          year: 'numeric'
-        }),
-        trackingNumber: trackingNum,
-        carrier: shippingCost > 15 ? 'FedEx Priority' : 'DHL Standard'
-      };
-
-      // 1. Decrement stock atomically
-      for (const update of stockUpdates) {
-        transaction.update(update.ref, { stock: update.newStock });
-      }
-
-      // 2. Write order atomically
-      transaction.set(orderDocRef, orderPayload);
-
-      return orderPayload;
-    });
-
-    setOrders((prev) => [validatedOrder, ...prev]);
+    const validatedOrder = result.data as Order;
+    setOrders((prev) => [validatedOrder, ...prev.filter((order) => order.id !== validatedOrder.id)]);
     clearCart();
     setActiveOrderConfirmation(validatedOrder);
-    addToast('Order Placed Successfully!', `Order #${orderNumber} confirmed with verified pricing & stock.`, 'success');
+    addToast('Order Placed Successfully!', `Order #${validatedOrder.orderNumber} confirmed with verified pricing and stock.`, 'success');
     return validatedOrder;
   };
 

@@ -135,12 +135,7 @@ export const CheckoutModal: React.FC = () => {
     setCheckoutError(null);
 
     try {
-      const paymentDesc =
-        paymentType === 'card'
-          ? `Credit Card (${cardNumber.slice(-4)})`
-          : 'PayPal Verified';
-
-      await placeOrder(address, paymentDesc, shippingCost);
+      await placeOrder(address, paymentType, shippingMethod);
       setIsProcessing(false);
       setIsCheckoutOpen(false);
     } catch (err: any) {
