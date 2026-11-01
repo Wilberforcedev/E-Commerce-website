@@ -63,7 +63,9 @@ npm run dev
 
 Runs on `http://localhost:3000` — Express handles `/api/*`, Vite handles everything else with hot reload.
 
-On an empty Firestore database, sign in with an administrator account to seed the sample product catalog. The admin account must be designated in the Firestore user profile or use the configured administrator email.\n\nFor a production build:
+On an empty Firestore database, sign in with an administrator account to seed the sample product catalog. The admin account must be designated in the Firestore user profile or use the configured administrator email.
+
+For a production build:
 
 ```bash
 npm run build
@@ -84,7 +86,10 @@ Any other Node host (Railway, Fly.io, a plain VPS) works the same way — `npm i
 |---|---|---|
 | `NODE_ENV` | Yes | `production` |
 | `PORT` | No | Defaults to 3000; most hosts set their own anyway |
-| `GEMINI_API_KEY` | Yes | Server-side only, never sent to the client |\n| `FIREBASE_PROJECT_ID` | Yes | Firebase project ID used to verify sign-in tokens |\n| `FIREBASE_SERVICE_ACCOUNT_JSON` | Yes | Server-side service account JSON with Firestore read/write access |\n| `FIREBASE_DATABASE_ID` | No | Defaults to `(default)`; set it if the app uses a named Firestore database |
+| `GEMINI_API_KEY` | Yes | Server-side only, never sent to the client |
+| `FIREBASE_PROJECT_ID` | Yes | Firebase project ID used to verify sign-in tokens |
+| `FIREBASE_SERVICE_ACCOUNT_JSON` | Yes | Server-side service account JSON with Firestore read/write access |
+| `FIREBASE_DATABASE_ID` | No | Defaults to `(default)`; set it if the app uses a named Firestore database |
 | `VITE_STORE_NAME` | No | Defaults to `NovaMart` |
 | `VITE_CURRENCY_SYMBOL` | No | Defaults to `$` |
 | `ALLOWED_ORIGIN` | Recommended | Comma-separated origins allowed to call `/api/*`. Leave unset and it defaults to same-origin only, which is fine if nothing external needs to call the API |
