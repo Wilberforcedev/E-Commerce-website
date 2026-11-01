@@ -1,5 +1,5 @@
 import { GoogleAuth } from 'google-auth-library';
-import { OAuth2Client } from 'google-auth-library';
+import { createVerify } from 'crypto';
 import { Request, Response, NextFunction } from 'express';
 
 export interface StoreIdentity {
@@ -22,7 +22,7 @@ const FIRESTORE_SCOPE = 'https://www.googleapis.com/auth/datastore';
 const ADMIN_EMAIL = (process.env.STORE_ADMIN_EMAIL || 'wilberofficial2001@gmail.com').toLowerCase();
 
 let firestoreAuth: Promise<Awaited<ReturnType<GoogleAuth['getClient']>>> | undefined;
-const tokenVerifier = new OAuth2Client();
+let signingCerts: { keys: Record<string, string>; expiresAt: number } | undefined;
 
 function requireProjectId(): string {
   if (!PROJECT_ID) {
@@ -113,16 +113,54 @@ export function decodeFirestoreFields(fields: Record<string, any> = {}): Record<
   return Object.fromEntries(Object.entries(fields).map(([key, value]) => [key, decodeFirestoreValue(value)]));
 }
 
+async function getFirebaseSigningCerts(forceRefresh = false): Promise<Record<string, string>> {
+  if (!forceRefresh && signingCerts && signingCerts.expiresAt > Date.now()) return signingCerts.keys;
+  const response = await fetch('https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com');
+  if (!response.ok) throw new Error('Could not verify Firebase sign-in token.');
+  const keys = await response.json() as Record<string, string>;
+  const maxAge = Number(/max-age=(\\d+)/i.exec(response.headers.get('cache-control') || '')?.[1] || 300);
+  signingCerts = { keys, expiresAt: Date.now() + Math.max(60, maxAge) * 1000 };
+  return keys;
+}
+
+function decodeTokenPart(part: string): any {
+  return JSON.parse(Buffer.from(part, 'base64url').toString('utf8'));
+}
+
 export async function verifyFirebaseIdToken(token: string): Promise<StoreIdentity> {
-  const ticket = await tokenVerifier.verifyIdToken({ idToken: token, audience: requireProjectId() });
-  const payload = ticket.getPayload();
-  if (!payload?.sub || payload.firebase?.sign_in_provider === 'anonymous') {
-    throw new Error('A valid Firebase user token is required.');
+  const segments = token.split('.');
+  if (segments.length !== 3) throw new Error('Malformed Firebase token.');
+  const header = decodeTokenPart(segments[0]);
+  const claims = decodeTokenPart(segments[1]);
+  if (header.alg !== 'RS256' || typeof header.kid !== 'string') throw new Error('Unsupported Firebase token.');
+  const now = Math.floor(Date.now() / 1000);
+  const projectId = requireProjectId();
+  const validClaims =
+    claims.aud === projectId &&
+    claims.iss === `https://securetoken.google.com/${projectId}` &&
+    typeof claims.sub === 'string' && claims.sub.length > 0 && claims.sub.length <= 128 &&
+    typeof claims.exp === 'number' && claims.exp > now &&
+    typeof claims.iat === 'number' && claims.iat <= now + 300 &&
+    typeof claims.auth_time === 'number' && claims.auth_time <= now + 300;
+  if (!validClaims) throw new Error('Invalid or expired Firebase token claims.');
+
+  let certs = await getFirebaseSigningCerts();
+  let certificate = certs[header.kid];
+  if (!certificate) {
+    certs = await getFirebaseSigningCerts(true);
+    certificate = certs[header.kid];
+  }
+  if (!certificate) throw new Error('Unknown Firebase token signing key.');
+  const verifier = createVerify('RSA-SHA256');
+  verifier.update(`${segments[0]}.${segments[1]}`);
+  verifier.end();
+  if (!verifier.verify(certificate, Buffer.from(segments[2], 'base64url'))) {
+    throw new Error('Invalid Firebase token signature.');
   }
 
   return {
-    uid: payload.sub,
-    email: payload.email?.toLowerCase(),
+    uid: claims.sub,
+    email: typeof claims.email === 'string' ? claims.email.toLowerCase() : undefined,
     role: 'customer',
   };
 }
