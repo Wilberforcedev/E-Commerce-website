@@ -154,10 +154,12 @@ export class OrderController extends Controller {
         if (!validStatuses.includes(status)) return this.error(res, 'Invalid order status.', undefined, 422);
         const path = firestoreDocumentPath('orders', String(req.params.id));
         const current = await firestoreRequest<any>(path, 'GET');
-        await firestoreRequest(path, 'PATCH', {
-          fields: { status: firestoreValue(status) },
-          updateMask: { fieldPaths: ['status'] },
-          currentDocument: { updateTime: current.updateTime },
+        await firestoreRequest(`${getProjectDatabasePath()}:commit`, 'POST', {
+          writes: [{
+            update: { name: path, fields: { status: firestoreValue(status) } },
+            updateMask: { fieldPaths: ['status'] },
+            currentDocument: { updateTime: current.updateTime },
+          }],
         });
         return this.success(res, { id: req.params.id, status }, 'Order status updated.');
       } catch (err: any) {
