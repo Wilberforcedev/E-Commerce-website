@@ -598,14 +598,23 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const payloadSignature = JSON.stringify(checkoutPayload);
     const storageKey = 'novamart_pending_checkout_v1';
     let idempotencyKey = crypto.randomUUID();
+    let savedAttempt: string | null = null;
     try {
-      const savedAttempt = sessionStorage.getItem(storageKey);
-      if (savedAttempt) {
+      savedAttempt = sessionStorage.getItem(storageKey);
+    } catch {
+      // Continue with a fresh key when session storage is unavailable.
+    }
+    if (savedAttempt) {
+      try {
         const parsed = JSON.parse(savedAttempt);
         if (parsed.signature === payloadSignature && typeof parsed.key === 'string') {
           idempotencyKey = parsed.key;
         }
+      } catch {
+        // Replace malformed saved state with a fresh request key.
       }
+    }
+    try {
       sessionStorage.setItem(storageKey, JSON.stringify({ signature: payloadSignature, key: idempotencyKey }));
     } catch {
       // Continue with this request's fresh key when session storage is unavailable.
