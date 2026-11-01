@@ -10,7 +10,7 @@ const orderController = new OrderController();
 const transcriptionController = new TranscriptionController();
 const healthController = new HealthController();
 
-export const transcribeThrottle = rateLimit({
+export const checkoutThrottle = rateLimit({\n  windowMs: 60 * 1000,\n  max: 20,\n  standardHeaders: true,\n  legacyHeaders: false,\n  message: { message: 'Too many checkout attempts. Please wait and try again.' },\n});\n\nexport const transcribeThrottle = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 30,
   standardHeaders: true,
@@ -23,7 +23,7 @@ router.get('/', healthController.routes);
 router.get('/health', healthController.check);
 
 // Checkout writes through the server after it verifies identity, prices, coupon, shipping, and stock.
-router.post('/orders', ...(orderController.store as any[]));
+router.post('/orders', checkoutThrottle, ...(orderController.store as any[]));
 router.get('/orders/:id', ...(orderController.show as any[]));
 router.patch(
   '/orders/:id/status',
