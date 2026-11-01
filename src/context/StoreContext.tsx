@@ -583,28 +583,58 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (cart.length === 0) throw new Error('Your shopping cart is empty.');
 
     const token = auth.currentUser ? await auth.currentUser.getIdToken() : null;
+    const checkoutPayload = {
+      items: cart.map(({ product, quantity, selectedColor, selectedSize }) => ({
+        productId: product.id,
+        quantity,
+        selectedColor,
+        selectedSize,
+      })),
+      shippingAddress: address,
+      shippingMethod,
+      paymentMethod: paymentMethod === 'paypal' ? 'paypal' : 'card',
+      couponCode: appliedCoupon?.code,
+    };
+    const payloadSignature = JSON.stringify(checkoutPayload);
+    const storageKey = 'novamart_pending_checkout_v1';
+    let idempotencyKey = crypto.randomUUID();
+    try {
+      const savedAttempt = sessionStorage.getItem(storageKey);
+      if (savedAttempt) {
+        const parsed = JSON.parse(savedAttempt);
+        if (parsed.signature === payloadSignature && typeof parsed.key === 'string') {
+          idempotencyKey = parsed.key;
+        }
+      }
+      sessionStorage.setItem(storageKey, JSON.stringify({ signature: payloadSignature, key: idempotencyKey }));
+    } catch {
+      // Continue with this request's fresh key when session storage is unavailable.
+    }
+
     const response = await fetch('/api/orders', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Idempotency-Key': idempotencyKey,
         ...(token ? { Authorization: `Bearer ${token}` } : {}),
       },
-      body: JSON.stringify({
-        items: cart.map(({ product, quantity, selectedColor, selectedSize }) => ({
-          productId: product.id,
-          quantity,
-          selectedColor,
-          selectedSize,
-        })),
-        shippingAddress: address,
-        shippingMethod,
-        paymentMethod: paymentMethod === 'paypal' ? 'paypal' : 'card',
-        couponCode: appliedCoupon?.code,
-      }),
+      body: JSON.stringify(checkoutPayload),
     });
     const result = await response.json().catch(() => ({}));
     if (!response.ok || !result?.data) {
+      if (response.status >= 400 && response.status < 500 && response.status !== 429) {
+        try {
+          sessionStorage.removeItem(storageKey);
+        } catch {
+          // The next attempt will use a new key if session storage is unavailable.
+        }
+      }
       throw new Error(result?.message || 'Unable to complete purchase. Please try again.');
+    }
+    try {
+      sessionStorage.removeItem(storageKey);
+    } catch {
+      // The saved key is harmless after the cart is cleared.
     }
 
     const validatedOrder = result.data as Order;
