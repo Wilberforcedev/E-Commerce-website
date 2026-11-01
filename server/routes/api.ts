@@ -10,7 +10,15 @@ const orderController = new OrderController();
 const transcriptionController = new TranscriptionController();
 const healthController = new HealthController();
 
-export const checkoutThrottle = rateLimit({\n  windowMs: 60 * 1000,\n  max: 20,\n  standardHeaders: true,\n  legacyHeaders: false,\n  message: { message: 'Too many checkout attempts. Please wait and try again.' },\n});\n\nexport const transcribeThrottle = rateLimit({
+export const checkoutThrottle = rateLimit({
+  windowMs: 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many checkout attempts. Please wait and try again.' },
+});
+
+export const transcribeThrottle = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 30,
   standardHeaders: true,
