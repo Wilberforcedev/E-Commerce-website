@@ -50,6 +50,11 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin() && isValidId(productId);
     }
 
+    // Idempotency records are server-only and never expose order details.
+    match /checkoutRequests/{requestId} {
+      allow read, write: if false;
+    }
+
     // Orders contain personal delivery data. Checkout is written atomically by
     // the server with privileged credentials; customers can only read their own.
     match /orders/{orderId} {
