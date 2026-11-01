@@ -27,7 +27,6 @@ router.post('/orders', checkoutThrottle, ...(orderController.store as any[]));
 router.get('/orders/:id', ...(orderController.show as any[]));
 router.patch(
   '/orders/:id/status',
-  validateRequest({ status: ['required', 'string', 'in:Pending,Processing,Shipped,Delivered,Cancelled'] }),
   ...(orderController.updateStatus as any[]),
 );
 
