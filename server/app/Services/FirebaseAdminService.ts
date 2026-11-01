@@ -19,7 +19,7 @@ declare global {
 const PROJECT_ID = process.env.FIREBASE_PROJECT_ID?.trim();
 const DATABASE_ID = process.env.FIREBASE_DATABASE_ID?.trim() || '(default)';
 const FIRESTORE_SCOPE = 'https://www.googleapis.com/auth/datastore';
-const ADMIN_EMAIL = (process.env.STORE_ADMIN_EMAIL || 'wilberofficial2001@gmail.com').toLowerCase();
+const ADMIN_EMAIL = 'wilberofficial2001@gmail.com';
 
 let firestoreAuth: Promise<Awaited<ReturnType<GoogleAuth['getClient']>>> | undefined;
 let signingCerts: { keys: Record<string, string>; expiresAt: number } | undefined;
