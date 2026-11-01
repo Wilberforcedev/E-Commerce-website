@@ -246,26 +246,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (typeof productOrId === 'string') {
       setIsProductDetailLoading(true);
       setActiveProductDetail(null);
-      try {
-        const res = await fetch(`/api/products/${productOrId}`);
-        if (res.ok) {
-          const json = await res.json();
-          setActiveProductDetail(json.data || json);
-        } else {
-          const found = products.find((p) => p.id === productOrId) || null;
-          setActiveProductDetail(found);
-        }
-      } catch (err) {
-        console.warn('API product detail fetch note:', err);
-        const found = products.find((p) => p.id === productOrId) || null;
-        setActiveProductDetail(found);
-      } finally {
-        setIsProductDetailLoading(false);
-      }
-    } else {
-      setActiveProductDetail(productOrId);
+      const found = products.find((product) => product.id === productOrId) || null;
+      setActiveProductDetail(found);
       setIsProductDetailLoading(false);
+      return;
     }
+    setActiveProductDetail(productOrId);
+    setIsProductDetailLoading(false);
   };
 
   // Toast Helper
