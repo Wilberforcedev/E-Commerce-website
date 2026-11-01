@@ -2,7 +2,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import cors, { CorsOptions } from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { apiRouter } from './server/routes/api';
+import { apiRouter, transcribeThrottle } from './server/routes/api';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -14,35 +14,22 @@ async function startServer() {
   // 1. CORS Configuration: Locked down in production with environment variable support
   const allowedOriginsEnv = process.env.ALLOWED_ORIGIN || process.env.CORS_ORIGIN;
   const allowedOrigins = allowedOriginsEnv
-    ? allowedOriginsEnv.split(',').map((o) => o.trim()).filter(Boolean)
+    ? allowedOriginsEnv.split(',').map((origin) => origin.trim()).filter(Boolean)
     : [];
+
+  if (process.env.NODE_ENV === 'production' && allowedOrigins.includes('*')) {
+    throw new Error('Wildcard ALLOWED_ORIGIN is not supported in production.');
+  }
 
   const corsOptions: CorsOptions = {
     origin: (origin, callback) => {
-      // Allow requests with no origin (e.g. same-origin SPA navigation, mobile apps, curl)
-      if (!origin) {
-        return callback(null, true);
-      }
-
-      // Allow all in development or when explicitly set to wildcard / unconfigured
-      if (
-        process.env.NODE_ENV !== 'production' ||
-        allowedOrigins.length === 0 ||
-        allowedOrigins.includes('*')
-      ) {
-        return callback(null, true);
-      }
-
-      // Check against configured production origins
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-
-      return callback(new Error(`Origin ${origin} is not allowed by CORS policy.`));
+      if (!origin || process.env.NODE_ENV !== 'production') return callback(null, true);
+      // With no allow-list, emit no CORS permission. Same-origin requests continue normally.
+      return callback(null, allowedOrigins.includes(origin));
     },
-    credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+    credentials: false,
+    methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   };
 
   app.use(cors(corsOptions));
@@ -62,8 +49,8 @@ async function startServer() {
   });
 
   // 3. JSON body parsing with reasonable default limits (transcribe route has dedicated 25mb limit)
+  app.use('/api/transcribe', transcribeThrottle, express.json({ limit: '25mb' }));
   app.use(express.json({ limit: '1mb' }));
-  app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 
   // 4. Mount Laravel-Style API Routes under /api
   app.use('/api', apiRouter);
