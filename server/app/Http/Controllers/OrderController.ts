@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { randomUUID } from 'crypto';
+import { createHash, randomUUID } from 'crypto';
 import { INITIAL_COUPONS } from '../../../src/data/initialData';
 import { OrderStatus, Product, CartItem, ShippingAddress } from '../../../../src/types';
 import {
@@ -11,6 +11,25 @@ import { Controller } from './Controller';
 const validStatuses: OrderStatus[] = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
 const productIdPattern = /^[a-zA-Z0-9_-]{1,128}$/;
 const asDocument = (doc: any) => ({ id: doc.name.split('/').pop(), ...decodeFirestoreFields(doc.fields) });
+
+async function findCheckoutResult(path: string, requestHash: string): Promise<{ order?: any; conflict?: boolean } | null> {
+  let request: any;
+  try {
+    request = await firestoreRequest<any>(path, 'GET');
+  } catch (error: any) {
+    if (error?.response?.status === 404) return null;
+    throw error;
+  }
+  const saved = decodeFirestoreFields(request.fields);
+  if (saved.requestHash !== requestHash) return { conflict: true };
+  try {
+    const orderDoc = await firestoreRequest<any>(firestoreDocumentPath('orders', saved.orderId), 'GET');
+    return { order: asDocument(orderDoc) };
+  } catch (error: any) {
+    if (error?.response?.status === 404) return { conflict: true };
+    throw error;
+  }
+}
 
 function validateAddress(value: any): value is ShippingAddress {
   const fields = ['fullName', 'email', 'phone', 'address', 'city', 'state', 'postalCode', 'country'];
@@ -37,6 +56,43 @@ export class OrderController extends Controller {
         if (!['card', 'paypal'].includes(paymentMethod)) return this.error(res, 'Select a valid payment method.', undefined, 422);
         if (items.some((item) => !item || !productIdPattern.test(item.productId) || !Number.isSafeInteger(item.quantity) || item.quantity < 1 || item.quantity > 99)) {
           return this.error(res, 'One or more cart items are invalid.', undefined, 422);
+        }
+
+        const idempotencyKey = req.header('Idempotency-Key') || '';
+        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(idempotencyKey)) {
+          return this.error(res, 'A valid checkout request key is required.', undefined, 400);
+        }
+        const shippingAddress: ShippingAddress = {
+          fullName: address.fullName.trim(),
+          email: address.email.trim().toLowerCase(),
+          phone: address.phone.trim(),
+          address: address.address.trim(),
+          city: address.city.trim(),
+          state: address.state.trim(),
+          postalCode: address.postalCode.trim(),
+          country: address.country.trim(),
+        };
+        const requestHash = createHash('sha256').update(JSON.stringify({
+          items: items.map((item) => [
+            item.productId,
+            item.quantity,
+            typeof item.selectedColor === 'string' ? item.selectedColor.slice(0, 80) : '',
+            typeof item.selectedSize === 'string' ? item.selectedSize.slice(0, 80) : '',
+          ]),
+          shippingAddress,
+          shippingMethod,
+          paymentMethod,
+          couponCode: couponCode.toUpperCase(),
+        })).digest('hex');
+        const requestOwner = req.storeIdentity?.uid || 'guest';
+        const checkoutRequestId = `${requestOwner}_${idempotencyKey}`;
+        const checkoutRequestPath = firestoreDocumentPath('checkoutRequests', checkoutRequestId);
+        const existingCheckout = await findCheckoutResult(checkoutRequestPath, requestHash);
+        if (existingCheckout?.conflict) {
+          return this.error(res, 'This checkout request key was already used for different order details. Start checkout again.', undefined, 409);
+        }
+        if (existingCheckout?.order) {
+          return this.success(res, existingCheckout.order, 'Order was already placed.', 200);
         }
 
         const quantities = new Map<string, number>();
@@ -96,7 +152,7 @@ export class OrderController extends Controller {
         const order = {
           id, orderNumber, userId: req.storeIdentity?.uid || 'guest', date: new Date().toISOString(),
           items: validatedItems, subtotal, discount, shipping, tax, total, status: 'Pending' as OrderStatus,
-          shippingAddress: address, paymentMethod: paymentMethod === 'paypal' ? 'PayPal (demo)' : 'Card (demo)',
+          shippingAddress, paymentMethod: paymentMethod === 'paypal' ? 'PayPal (demo)' : 'Card (demo)',
           estimatedDelivery, trackingNumber, carrier: shippingMethod === 'overnight' ? 'FedEx Priority' : 'DHL Standard',
         };
 
@@ -113,11 +169,30 @@ export class OrderController extends Controller {
           update: { name: firestoreDocumentPath('orders', id), fields: firestoreFields(order) },
           currentDocument: { exists: false },
         });
+        writes.push({
+          update: {
+            name: checkoutRequestPath,
+            fields: firestoreFields({
+              requestHash,
+              orderId: id,
+              userId: requestOwner,
+              createdAt: new Date().toISOString(),
+            }),
+          },
+          currentDocument: { exists: false },
+        });
 
         try {
           await firestoreRequest(`${getProjectDatabasePath()}:commit`, 'POST', { writes });
         } catch (error: any) {
           if ([400, 409].includes(error?.response?.status)) {
+            const winningCheckout = await findCheckoutResult(checkoutRequestPath, requestHash);
+            if (winningCheckout?.order) {
+              return this.success(res, winningCheckout.order, 'Order was already placed.', 200);
+            }
+            if (winningCheckout?.conflict) {
+              return this.error(res, 'This checkout request key was already used for different order details. Start checkout again.', undefined, 409);
+            }
             return this.error(res, 'Stock or pricing changed during checkout. Refresh your cart and try again.', undefined, 409);
           }
           throw error;

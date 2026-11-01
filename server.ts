@@ -29,7 +29,7 @@ async function startServer() {
     },
     credentials: false,
     methods: ['GET', 'POST', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'Idempotency-Key', 'Accept'],
   };
 
   app.use(cors(corsOptions));
