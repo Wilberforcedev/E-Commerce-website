@@ -141,7 +141,7 @@ export async function verifyFirebaseIdToken(token: string): Promise<StoreIdentit
     typeof claims.sub === 'string' && claims.sub.length > 0 && claims.sub.length <= 128 &&
     typeof claims.exp === 'number' && claims.exp > now &&
     typeof claims.iat === 'number' && claims.iat <= now + 300 &&
-    typeof claims.auth_time === 'number' && claims.auth_time <= now + 300;
+    typeof claims.auth_time === 'number' && claims.auth_time <= now;
   if (!validClaims) throw new Error('Invalid or expired Firebase token claims.');
 
   let certs = await getFirebaseSigningCerts();
