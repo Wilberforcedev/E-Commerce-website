@@ -14,6 +14,8 @@ A full-stack e-commerce app — React frontend, Express backend, Firebase Auth a
 
 ## Security model
 
+> The payment screen is currently a demo: it records the selected method but does not charge a card or PayPal account. Connect a payment provider before accepting real payments.
+
 - **Checkout runs on the server.** The client sends product IDs, quantities, address, shipping choice, payment type, and an optional coupon code. The server verifies any Firebase ID token, reads current prices and stock, applies known coupons, calculates shipping and tax, then commits the order and stock changes as one Firestore write with update-time preconditions.
 - **Orders are private.** Firestore allows a signed-in customer to read only orders whose `userId` matches their Firebase UID. Admins can read all orders. Guest checkout returns its confirmation to that browser session, but guest orders cannot be fetched later.
 - **Catalog writes are restricted.** Customers can read products. Only admins can create, edit, seed, or delete products. Direct customer writes to orders and stock are denied.
@@ -43,7 +45,7 @@ VITE_CURRENCY_SYMBOL=$
 GEMINI_API_KEY=your_gemini_api_key_here
 FIREBASE_PROJECT_ID=your_firebase_project_id
 FIREBASE_DATABASE_ID=(default)
-FIREBASE_SERVICE_ACCOUNT_JSON='{"type":"service_account", ...}'
+FIREBASE_SERVICE_ACCOUNT_JSON=<contents of private service account JSON>
 
 # only matters in production — who's allowed to call the API cross-origin
 ALLOWED_ORIGIN=https://your-production-domain.com
@@ -63,7 +65,7 @@ npm run dev
 
 Runs on `http://localhost:3000` — Express handles `/api/*`, Vite handles everything else with hot reload.
 
-On an empty Firestore database, sign in with an administrator account to seed the sample product catalog. The admin account must be designated in the Firestore user profile or use the configured administrator email.
+On an empty Firestore database, sign in with an administrator account to seed the sample product catalog. The admin account must have `role: admin` in its Firestore user document or match the administrator email specified in `firestore.rules`.
 
 For a production build:
 
