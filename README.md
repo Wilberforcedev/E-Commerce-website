@@ -1,6 +1,6 @@
 # NovaMart
 
-A full-stack e-commerce app — React frontend, Express backend, Firebase for auth and data, and a voice search / voice review feature powered by Gemini's audio transcription. Built as a real store, not a demo: proper stock tracking, atomic checkout, role-based admin access, the works.
+A full-stack e-commerce app — React frontend, Express backend, Firebase Auth and Firestore, plus voice search powered by Gemini transcription. Checkout runs through the server so product prices, discounts, shipping, tax, and stock are checked against current store data.
 
 ## What it does
 
@@ -10,16 +10,15 @@ A full-stack e-commerce app — React frontend, Express backend, Firebase for au
 - Live inventory that stays in sync across users
 - Wishlists and order history, plus public order tracking by order ID
 - An admin dashboard for managing products, stock, and order status
-- **Checkout that won't oversell** — stock and pricing are re-verified server-side inside a Firestore transaction at the moment of purchase, so two people can't buy the last item at once and prices can't be tampered with client-side
+- **Server-validated checkout** — the server reads current product records, recalculates the total, and commits the order and stock decrements atomically with Firestore update-time preconditions.
 
-## How the security actually works
+## Security model
 
-A couple of things worth knowing if you're touching the checkout or auth code:
-
-- **Roles aren't trusted from the client.** Whether someone's an admin lives in Firestore under `/users/{userId}` and gets checked server-side — nobody can just claim admin by editing a request.
-- **Firestore rules do the heavy lifting.** Users can only write their own profile. Only admins can create or delete products. Orders can only be created with valid data and start as `Pending` — only admins can change that after.
-- **Checkout is atomic.** Placing an order reads live prices and stock, recalculates the total against real server data (not whatever the client sent), and decrements inventory all inside one Firestore `runTransaction`, so it can't half-succeed or get raced by a concurrent order.
-- **The transcription endpoint is rate-limited** (30 requests / 15 min per IP) since it's the one route burning Gemini API quota, and request sizes are capped per-route (1MB normal, 25MB for audio).
+- **Checkout runs on the server.** The client sends product IDs, quantities, address, shipping choice, payment type, and an optional coupon code. The server verifies any Firebase ID token, reads current prices and stock, applies known coupons, calculates shipping and tax, then commits the order and stock changes as one Firestore write with update-time preconditions.
+- **Orders are private.** Firestore allows a signed-in customer to read only orders whose `userId` matches their Firebase UID. Admins can read all orders. Guest checkout returns its confirmation to that browser session, but guest orders cannot be fetched later.
+- **Catalog writes are restricted.** Customers can read products. Only admins can create, edit, seed, or delete products. Direct customer writes to orders and stock are denied.
+- **Admin API actions require a verified Firebase ID token and an admin role.** Server identity comes from the signed token and the server-side user profile, not a role supplied in a request body.
+- **Production CORS uses an exact origin allow-list.** An unset allow-list blocks cross-origin browser access; wildcard origins are rejected. Transcription is rate-limited to 30 requests per 15 minutes, and its JSON payload is limited to 25 MB.
 
 ## Stack
 
@@ -36,18 +35,21 @@ npm install
 cp .env.example .env
 ```
 
-Fill in `.env`:
+Fill in `.env`. Keep the service account JSON private; do not commit it. Give the service account Firestore read/write permissions in the Firebase project.
 
 ```env
 VITE_STORE_NAME=NovaMart
 VITE_CURRENCY_SYMBOL=$
 GEMINI_API_KEY=your_gemini_api_key_here
+FIREBASE_PROJECT_ID=your_firebase_project_id
+FIREBASE_DATABASE_ID=(default)
+FIREBASE_SERVICE_ACCOUNT_JSON='{"type":"service_account", ...}'
 
 # only matters in production — who's allowed to call the API cross-origin
 ALLOWED_ORIGIN=https://your-production-domain.com
 ```
 
-Make sure `firebase-applet-config.json` is in the project root (it's just the public client config, safe to commit), then push the Firestore rules:
+Make sure `firebase-applet-config.json` is in the project root (it contains public client configuration), then deploy the Firestore rules:
 
 ```bash
 firebase deploy --only firestore:rules
@@ -61,7 +63,7 @@ npm run dev
 
 Runs on `http://localhost:3000` — Express handles `/api/*`, Vite handles everything else with hot reload.
 
-For a production build:
+On an empty Firestore database, sign in with an administrator account to seed the sample product catalog. The admin account must be designated in the Firestore user profile or match `STORE_ADMIN_EMAIL`.\n\nFor a production build:
 
 ```bash
 npm run build
@@ -74,7 +76,7 @@ This builds the frontend into `dist/` and starts the one Express process that se
 
 This is a real server, not a static site — it needs somewhere that keeps a Node process running, so Netlify/GitHub Pages won't work here.
 
-Render is the easiest option — there's a `render.yaml` at the repo root already. Push to GitHub, create a Render Blueprint pointing at the repo, set `GEMINI_API_KEY` and `ALLOWED_ORIGIN` as secrets in the Render dashboard (they're deliberately left out of the committed config), and deploy. It'll run the build, start the server, and health-check `/api/health` automatically.
+Render is the easiest option — there's a `render.yaml` at the repo root already. Push to GitHub, create a Render Blueprint pointing at the repo, set `GEMINI_API_KEY`, `FIREBASE_PROJECT_ID`, `FIREBASE_SERVICE_ACCOUNT_JSON`, and the exact `ALLOWED_ORIGIN` in the Render dashboard, and deploy. Set the service account JSON as a secret. The service account needs Firestore read/write IAM access. It'll run the build, start the server, and health-check `/api/health` automatically.
 
 Any other Node host (Railway, Fly.io, a plain VPS) works the same way — `npm install && npm run build` to build, `npm start` to run. Just set these env vars:
 
@@ -82,7 +84,7 @@ Any other Node host (Railway, Fly.io, a plain VPS) works the same way — `npm i
 |---|---|---|
 | `NODE_ENV` | Yes | `production` |
 | `PORT` | No | Defaults to 3000; most hosts set their own anyway |
-| `GEMINI_API_KEY` | Yes | Server-side only, never sent to the client |
+| `GEMINI_API_KEY` | Yes | Server-side only, never sent to the client |\n| `FIREBASE_PROJECT_ID` | Yes | Firebase project ID used to verify sign-in tokens |\n| `FIREBASE_SERVICE_ACCOUNT_JSON` | Yes | Server-side service account JSON with Firestore read/write access |\n| `FIREBASE_DATABASE_ID` | No | Defaults to `(default)`; set it if the app uses a named Firestore database |
 | `VITE_STORE_NAME` | No | Defaults to `NovaMart` |
 | `VITE_CURRENCY_SYMBOL` | No | Defaults to `$` |
 | `ALLOWED_ORIGIN` | Recommended | Comma-separated origins allowed to call `/api/*`. Leave unset and it defaults to same-origin only, which is fine if nothing external needs to call the API |
