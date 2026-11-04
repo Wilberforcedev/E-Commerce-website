@@ -279,11 +279,14 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
           let userRole: 'customer' | 'admin' = 'customer';
           let loadedWishlist: string[] = wishlist;
+          // Email based elevation is only trustworthy when Firebase has verified the address.
+          const isVerifiedRootAdmin =
+            fbUser.emailVerified && fbUser.email === 'wilberofficial2001@gmail.com';
 
           if (userSnap.exists()) {
             const data = userSnap.data();
             // Role is strictly read from Firestore server document or designated root owner email
-            if (data.role === 'admin' || fbUser.email === 'wilberofficial2001@gmail.com') {
+            if (data.role === 'admin' || isVerifiedRootAdmin) {
               userRole = 'admin';
             }
             if (Array.isArray(data.wishlist) && data.wishlist.length > 0) {
@@ -292,7 +295,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             }
           } else {
             // First time self-registration: strictly default to customer unless verified root admin
-            if (fbUser.email === 'wilberofficial2001@gmail.com') {
+            if (isVerifiedRootAdmin) {
               userRole = 'admin';
             }
 

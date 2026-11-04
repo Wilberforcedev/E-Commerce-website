@@ -5,6 +5,7 @@ import { Request, Response, NextFunction } from 'express';
 export interface StoreIdentity {
   uid: string;
   email?: string;
+  emailVerified: boolean;
   role: 'customer' | 'admin';
 }
 
@@ -67,6 +68,7 @@ export async function firestoreRequest<T = any>(
     url: `https://firestore.googleapis.com/v1/${path}`,
     method,
     data,
+    timeout: 10_000,
   });
   return response.data;
 }
@@ -115,10 +117,13 @@ export function decodeFirestoreFields(fields: Record<string, any> = {}): Record<
 
 async function getFirebaseSigningCerts(forceRefresh = false): Promise<Record<string, string>> {
   if (!forceRefresh && signingCerts && signingCerts.expiresAt > Date.now()) return signingCerts.keys;
-  const response = await fetch('https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com');
+  const response = await fetch(
+    'https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com',
+    { signal: AbortSignal.timeout(5000) }
+  );
   if (!response.ok) throw new Error('Could not verify Firebase sign-in token.');
   const keys = await response.json() as Record<string, string>;
-  const maxAge = Number(/max-age=(\\d+)/i.exec(response.headers.get('cache-control') || '')?.[1] || 300);
+  const maxAge = Number(/max-age=(\d+)/i.exec(response.headers.get('cache-control') || '')?.[1] || 300);
   signingCerts = { keys, expiresAt: Date.now() + Math.max(60, maxAge) * 1000 };
   return keys;
 }
@@ -145,10 +150,10 @@ export async function verifyFirebaseIdToken(token: string): Promise<StoreIdentit
   if (!validClaims) throw new Error('Invalid or expired Firebase token claims.');
 
   let certs = await getFirebaseSigningCerts();
-  let certificate = certs[header.kid];
+  let certificate = Object.prototype.hasOwnProperty.call(certs, header.kid) ? certs[header.kid] : undefined;
   if (!certificate) {
     certs = await getFirebaseSigningCerts(true);
-    certificate = certs[header.kid];
+    certificate = Object.prototype.hasOwnProperty.call(certs, header.kid) ? certs[header.kid] : undefined;
   }
   if (!certificate) throw new Error('Unknown Firebase token signing key.');
   const verifier = createVerify('RSA-SHA256');
@@ -161,13 +166,18 @@ export async function verifyFirebaseIdToken(token: string): Promise<StoreIdentit
   return {
     uid: claims.sub,
     email: typeof claims.email === 'string' ? claims.email.toLowerCase() : undefined,
+    emailVerified: claims.email_verified === true,
     role: 'customer',
   };
 }
 
 async function loadIdentity(token: string): Promise<StoreIdentity> {
   const identity = await verifyFirebaseIdToken(token);
-  if (identity.email === ADMIN_EMAIL) return { ...identity, role: 'admin' };
+  // The root admin is identified by email, so only trust it once the address is verified.
+  // Otherwise anyone who signs up with that unverified address would become an admin.
+  if (identity.emailVerified && identity.email === ADMIN_EMAIL) {
+    return { ...identity, role: 'admin' };
+  }
 
   try {
     const doc = await firestoreRequest<any>(firestoreDocumentPath('users', identity.uid), 'GET');

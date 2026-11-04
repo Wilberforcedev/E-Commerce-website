@@ -28,7 +28,7 @@ React 19, TypeScript, Tailwind, Vite on the frontend. Express + `tsx` on the bac
 
 ## Running it locally
 
-You'll need Node 18+ (or Bun) and a Firebase project with Firestore + Auth turned on.
+You'll need Node 20+ (or Bun) and a Firebase project with Firestore + Auth turned on.
 
 ```bash
 git clone https://github.com/Wilberforcedev/E-Commerce-website.git
@@ -37,7 +37,7 @@ npm install
 cp .env.example .env
 ```
 
-Fill in `.env`. Keep the service account JSON private; do not commit it. Give the service account Firestore read/write permissions in the Firebase project.
+Fill in `.env`. The server loads it automatically for local runs; in production, provide the same values as environment variables on the host. Keep the service account JSON private; do not commit it. Give the service account Firestore read/write permissions in the Firebase project.
 
 ```env
 VITE_STORE_NAME=NovaMart
@@ -65,7 +65,7 @@ npm run dev
 
 Runs on `http://localhost:3000` — Express handles `/api/*`, Vite handles everything else with hot reload.
 
-On an empty Firestore database, sign in with an administrator account to seed the sample product catalog. The admin account must have `role: admin` in its Firestore user document or match the administrator email specified in `firestore.rules`.
+On an empty Firestore database, sign in with an administrator account to seed the sample product catalog. The admin account must have `role: admin` in its Firestore user document or match the administrator email specified in `firestore.rules`, and that email must be verified in Firebase Auth.
 
 For a production build:
 
@@ -95,6 +95,7 @@ Any other Node host (Railway, Fly.io, a plain VPS) works the same way — `npm i
 | `VITE_STORE_NAME` | No | Defaults to `NovaMart` |
 | `VITE_CURRENCY_SYMBOL` | No | Defaults to `$` |
 | `ALLOWED_ORIGIN` | Recommended | Comma-separated origins allowed to call `/api/*`. Leave unset and it defaults to same-origin only, which is fine if nothing external needs to call the API |
+| `TRUST_PROXY` | Recommended | Number of proxy hops in front of the server (`1` on Render/Railway) so per-IP rate limits see the real client address |
 
 One easy thing to forget: after deploying, add your production domain as an authorized domain in Firebase Auth settings — otherwise Google Sign-In will just fail on the live site with no obvious reason why.
 

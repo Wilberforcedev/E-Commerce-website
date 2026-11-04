@@ -22,6 +22,8 @@ services:
         sync: false # Set securely in Render dashboard
       - key: ALLOWED_ORIGIN
         sync: false # e.g. https://your-production-domain.com
+      - key: TRUST_PROXY
+        value: "1"
       - key: VITE_STORE_NAME
         value: NovaMart
       - key: VITE_CURRENCY_SYMBOL

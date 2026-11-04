@@ -34,6 +34,8 @@ COPY --from=builder /app/dist ./dist
 # Copy server code, configuration, and app metadata
 COPY --from=builder /app/server ./server
 COPY --from=builder /app/server.ts ./server.ts
+# The API imports the shared catalog/coupon module from src/ at runtime.
+COPY --from=builder /app/src ./src
 COPY --from=builder /app/firebase-applet-config.json ./firebase-applet-config.json
 
 # Use non-root node user for container security

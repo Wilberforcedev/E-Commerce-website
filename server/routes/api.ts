@@ -12,7 +12,7 @@ const healthController = new HealthController();
 
 export const checkoutThrottle = rateLimit({
   windowMs: 60 * 1000,
-  max: 20,
+  limit: 20,
   standardHeaders: true,
   legacyHeaders: false,
   message: { message: 'Too many checkout attempts. Please wait and try again.' },
@@ -20,11 +20,22 @@ export const checkoutThrottle = rateLimit({
 
 export const transcribeThrottle = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 30,
+  limit: 30,
   standardHeaders: true,
   legacyHeaders: false,
   message: { message: 'Too many transcription attempts. Please try again in 15 minutes.' },
 });
+
+// Broad backstop so order lookups, status updates, and health checks can't be brute-forced.
+const apiThrottle = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 120,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many requests. Please slow down and try again.' },
+});
+
+router.use(apiThrottle);
 
 // Read-only operational endpoints.
 router.get('/', healthController.routes);

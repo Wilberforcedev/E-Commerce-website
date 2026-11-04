@@ -32,9 +32,9 @@ export async function transcribeAudio(audioBlob: Blob): Promise<string> {
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error || `Server responded with status ${response.status}`);
+    throw new Error(errorData.message || errorData.error || `Server responded with status ${response.status}`);
   }
 
   const data = await response.json();
-  return data.text || '';
+  return data?.data?.text ?? data?.text ?? '';
 }

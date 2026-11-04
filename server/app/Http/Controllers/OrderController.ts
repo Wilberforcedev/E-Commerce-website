@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { createHash, randomUUID } from 'crypto';
-import { INITIAL_COUPONS } from '../../../src/data/initialData';
+import { INITIAL_COUPONS } from '../../../../src/data/initialData';
 import { OrderStatus, Product, CartItem, ShippingAddress } from '../../../../src/types';
 import {
   decodeFirestoreFields, firestoreDocumentPath, firestoreFields, firestoreRequest,
@@ -10,7 +10,7 @@ import { Controller } from './Controller';
 
 const validStatuses: OrderStatus[] = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
 const productIdPattern = /^[a-zA-Z0-9_-]{1,128}$/;
-const asDocument = (doc: any) => ({ id: doc.name.split('/').pop(), ...decodeFirestoreFields(doc.fields) });
+const asDocument = (doc: any): Record<string, any> => ({ id: doc.name.split('/').pop(), ...decodeFirestoreFields(doc.fields) });
 
 async function findCheckoutResult(path: string, requestHash: string): Promise<{ order?: any; conflict?: boolean } | null> {
   let request: any;
