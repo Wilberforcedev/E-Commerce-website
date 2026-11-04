@@ -94,22 +94,22 @@ export const AuthModal: React.FC = () => {
 
   return (
     <div
-      className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 overflow-y-auto bg-ink/45 backdrop-blur-sm flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="auth-modal-title"
     >
       <div className="fixed inset-0" onClick={() => !loading && setIsAuthOpen(false)} />
 
-      <div className="relative bg-white rounded-lg max-w-sm w-full border border-slate-200 shadow-xl overflow-hidden z-10 p-6 space-y-4">
+      <div className="relative bg-white rounded-panel max-w-sm w-full border border-line shadow-xl overflow-hidden z-10 p-6 space-y-4">
         
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div className="flex items-center justify-between pb-3 border-b border-line/70">
           <div>
-            <h3 id="auth-modal-title" className="font-bold text-base text-slate-900">
+            <h3 id="auth-modal-title" className="font-bold text-base text-ink">
               {mode === 'signin' ? 'Sign In' : 'Create Account'}
             </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <p className="text-xs text-ink-muted mt-0.5">
               Access your saved orders and hardware cart
             </p>
           </div>
@@ -118,7 +118,7 @@ export const AuthModal: React.FC = () => {
             onClick={() => setIsAuthOpen(false)}
             disabled={loading}
             aria-label="Close authentication window"
-            className="p-1 text-slate-400 hover:text-slate-700 rounded transition"
+            className="p-1 text-ink-muted/80 hover:text-ink rounded transition"
           >
             <X className="w-4 h-4" />
           </button>
@@ -138,10 +138,10 @@ export const AuthModal: React.FC = () => {
             type="button"
             disabled={loading}
             onClick={handleGoogleSignIn}
-            className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs rounded-md border border-slate-300 flex items-center justify-center gap-2.5 transition cursor-pointer"
+            className="w-full py-2.5 px-4 bg-white hover:bg-surface text-ink font-semibold text-xs rounded-md border border-line flex items-center justify-center gap-2.5 transition cursor-pointer"
           >
             {loading ? (
-              <Loader2 className="w-4 h-4 animate-spin text-slate-600" />
+              <Loader2 className="w-4 h-4 animate-spin text-ink-muted" />
             ) : (
               <svg className="w-4 h-4" viewBox="0 0 24 24">
                 <path
@@ -167,8 +167,8 @@ export const AuthModal: React.FC = () => {
         </div>
 
         <div className="relative flex items-center justify-center">
-          <div className="border-t border-slate-200 w-full" />
-          <span className="bg-white px-2 text-[11px] font-medium text-slate-400 uppercase tracking-wider">
+          <div className="border-t border-line w-full" />
+          <span className="bg-white px-2 text-[11px] font-medium text-ink-muted/80 uppercase tracking-wider">
             or email
           </span>
         </div>
@@ -176,11 +176,11 @@ export const AuthModal: React.FC = () => {
         {/* Email & Password Form with Inline Error Feedback */}
         <form onSubmit={handleSubmit} noValidate className="space-y-3">
           <div>
-            <label className="text-xs font-medium text-slate-700 block mb-1">
+            <label className="text-xs font-medium text-ink block mb-1">
               Email Address <span className="text-rose-500">*</span>
             </label>
             <div className="relative">
-              <Mail className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Mail className="w-3.5 h-3.5 text-ink-muted/80 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="email"
                 value={email}
@@ -192,7 +192,7 @@ export const AuthModal: React.FC = () => {
                 className={`w-full text-xs pl-8 pr-3 py-2 rounded-md border outline-none transition ${
                   emailError
                     ? 'border-rose-500 bg-rose-50/20'
-                    : 'border-slate-300 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600'
+                    : 'border-line focus:border-brand focus:ring-1 focus:ring-brand'
                 }`}
               />
             </div>
@@ -202,11 +202,11 @@ export const AuthModal: React.FC = () => {
           </div>
 
           <div>
-            <label className="text-xs font-medium text-slate-700 block mb-1">
+            <label className="text-xs font-medium text-ink block mb-1">
               Password <span className="text-rose-500">*</span>
             </label>
             <div className="relative">
-              <Lock className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Lock className="w-3.5 h-3.5 text-ink-muted/80 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="password"
                 value={password}
@@ -218,7 +218,7 @@ export const AuthModal: React.FC = () => {
                 className={`w-full text-xs pl-8 pr-3 py-2 rounded-md border outline-none transition ${
                   passwordError
                     ? 'border-rose-500 bg-rose-50/20'
-                    : 'border-slate-300 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600'
+                    : 'border-line focus:border-brand focus:ring-1 focus:ring-brand'
                 }`}
               />
             </div>
@@ -230,7 +230,7 @@ export const AuthModal: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-md transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-60"
+            className="w-full py-2.5 bg-accent hover:bg-accent-dark text-white font-semibold text-xs rounded-full transition flex items-center justify-center gap-1.5 cursor-pointer disabled:opacity-60"
           >
             {loading ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -244,34 +244,34 @@ export const AuthModal: React.FC = () => {
         </form>
 
         {/* Demo Fast Logins */}
-        <div className="bg-slate-50 p-3 rounded-md border border-slate-200 space-y-2">
-          <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+        <div className="bg-surface p-3 rounded-md border border-line space-y-2">
+          <p className="text-[10px] font-semibold text-ink-muted uppercase tracking-wider">
             Quick Sandbox Profiles
           </p>
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={handleDemoCustomer}
-              className="py-1.5 px-2 bg-white hover:bg-slate-100 text-slate-700 font-medium text-[11px] rounded border border-slate-200 flex items-center justify-center gap-1.5 transition"
+              className="py-1.5 px-2 bg-white hover:bg-surface text-ink font-medium text-[11px] rounded border border-line flex items-center justify-center gap-1.5 transition"
             >
-              <User className="w-3 h-3 text-slate-500" />
+              <User className="w-3 h-3 text-ink-muted" />
               <span>Customer</span>
             </button>
 
             <button
               type="button"
               onClick={handleDemoAdmin}
-              className="py-1.5 px-2 bg-white hover:bg-slate-100 text-slate-700 font-medium text-[11px] rounded border border-slate-200 flex items-center justify-center gap-1.5 transition"
+              className="py-1.5 px-2 bg-white hover:bg-surface text-ink font-medium text-[11px] rounded border border-line flex items-center justify-center gap-1.5 transition"
             >
-              <ShieldCheck className="w-3 h-3 text-slate-500" />
+              <ShieldCheck className="w-3 h-3 text-ink-muted" />
               <span>Store Admin</span>
             </button>
           </div>
         </div>
 
         {/* Switch Mode */}
-        <div className="text-center pt-2 border-t border-slate-100">
-          <p className="text-xs text-slate-500">
+        <div className="text-center pt-2 border-t border-line/70">
+          <p className="text-xs text-ink-muted">
             {mode === 'signin' ? "Don't have an account?" : 'Already registered?'}{' '}
             <button
               onClick={() => {
@@ -280,7 +280,7 @@ export const AuthModal: React.FC = () => {
                 setPasswordError(null);
                 setMode(mode === 'signin' ? 'signup' : 'signin');
               }}
-              className="text-slate-900 font-semibold hover:underline"
+              className="text-ink font-semibold hover:underline"
             >
               {mode === 'signin' ? 'Sign Up' : 'Sign In'}
             </button>

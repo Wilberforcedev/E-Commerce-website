@@ -19,24 +19,24 @@ export const WishlistView: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 animate-fade-in">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-line">
         <div>
           <button
             onClick={() => setActiveView('shop')}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-indigo-600 mb-2 transition"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-muted hover:text-brand mb-2 transition"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Store</span>
           </button>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center">
               <Heart className="w-5 h-5 fill-current" />
             </div>
             <div>
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-                My Saved Wishlist
+              <h1 className="text-[32px] font-medium text-ink tracking-[-0.025em] leading-tight">
+                Saved wishlist
               </h1>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-ink-muted">
                 {wishlistProducts.length} items saved for later
               </p>
             </div>
@@ -46,7 +46,7 @@ export const WishlistView: React.FC = () => {
         {wishlistProducts.length > 0 && (
           <button
             onClick={handleAddAllToCart}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-md transition flex items-center gap-2 self-start sm:self-center"
+            className="bg-brand hover:bg-brand-dark text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-md transition flex items-center gap-2 self-start sm:self-center"
           >
             <ShoppingBag className="w-4 h-4" />
             <span>Add All In-Stock to Bag</span>
@@ -63,19 +63,19 @@ export const WishlistView: React.FC = () => {
           ))}
         </div>
       ) : (
-        <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center max-w-md mx-auto space-y-4">
+        <div className="bg-white rounded-card border border-line p-12 text-center max-w-md mx-auto space-y-4">
           <div className="w-16 h-16 rounded-full bg-rose-50 text-rose-400 flex items-center justify-center mx-auto">
             <Heart className="w-8 h-8" />
           </div>
           <div>
-            <h3 className="font-extrabold text-lg text-slate-800">Your wishlist is empty</h3>
-            <p className="text-xs text-slate-500 mt-1">
+            <h3 className="font-semibold text-lg text-ink">Your wishlist is empty</h3>
+            <p className="text-xs text-ink-muted mt-1">
               Tap the heart icon on any product in the store to save it to your wishlist.
             </p>
           </div>
           <button
             onClick={() => setActiveView('shop')}
-            className="bg-indigo-600 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow hover:bg-indigo-700 transition"
+            className="bg-brand text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow hover:bg-brand transition"
           >
             Explore Catalog
           </button>

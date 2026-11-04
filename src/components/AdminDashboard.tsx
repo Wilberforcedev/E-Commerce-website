@@ -115,22 +115,22 @@ export const AdminDashboard: React.FC = () => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 animate-fade-in">
       
       {/* Top Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900 text-white p-6 rounded-3xl shadow-xl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-brand text-white p-6 sm:p-8 rounded-panel">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="p-1 rounded bg-amber-500/20 text-amber-400">
+            <span className="p-2 rounded-full bg-white/15 text-white">
               <ShieldCheck className="w-5 h-5" />
             </span>
-            <h1 className="text-xl sm:text-2xl font-black">NovaMart Store Management</h1>
+            <h1 className="text-2xl sm:text-[30px] font-medium tracking-[-0.02em]">NovaMart Store Management</h1>
           </div>
-          <p className="text-xs text-slate-400">
+          <p className="text-[13px] text-white/70">
             Real-time catalog control, inventory management, and live order fulfillment.
           </p>
         </div>
 
         <button
           onClick={() => setActiveView('shop')}
-          className="self-start sm:self-center inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white font-bold text-xs px-4 py-2.5 rounded-xl border border-white/15 transition backdrop-blur-xs"
+          className="self-start sm:self-center inline-flex items-center gap-2 bg-white hover:bg-white/90 text-brand font-medium text-xs px-5 py-2.5 rounded-full transition"
         >
           <ArrowLeft className="w-4 h-4" />
           <span>Return to Storefront</span>
@@ -139,55 +139,55 @@ export const AdminDashboard: React.FC = () => {
 
       {/* KPI Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
+        <div className="bg-white p-5 rounded-card border border-line shadow-xs flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
             <DollarSign className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs font-semibold text-slate-400">Total Revenue</p>
-            <p className="text-xl sm:text-2xl font-black text-slate-900">${totalRevenue.toFixed(2)}</p>
+            <p className="text-xs font-semibold text-ink-muted/80">Total Revenue</p>
+            <p className="text-xl sm:text-2xl font-semibold text-ink">${totalRevenue.toFixed(2)}</p>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center shrink-0">
+        <div className="bg-white p-5 rounded-card border border-line shadow-xs flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-brand-soft text-brand flex items-center justify-center shrink-0">
             <ShoppingCart className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs font-semibold text-slate-400">Total Orders</p>
-            <p className="text-xl sm:text-2xl font-black text-slate-900">{totalOrdersCount}</p>
+            <p className="text-xs font-semibold text-ink-muted/80">Total Orders</p>
+            <p className="text-xl sm:text-2xl font-semibold text-ink">{totalOrdersCount}</p>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+        <div className="bg-white p-5 rounded-card border border-line shadow-xs flex items-center gap-4">
+          <div className="w-12 h-12 rounded-xl bg-accent-soft text-accent flex items-center justify-center shrink-0">
             <Package className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs font-semibold text-slate-400">Products in Catalog</p>
-            <p className="text-xl sm:text-2xl font-black text-slate-900">{products.length}</p>
+            <p className="text-xs font-semibold text-ink-muted/80">Products in Catalog</p>
+            <p className="text-xl sm:text-2xl font-semibold text-ink">{products.length}</p>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs flex items-center gap-4">
+        <div className="bg-white p-5 rounded-card border border-line shadow-xs flex items-center gap-4">
           <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
             <AlertTriangle className="w-6 h-6" />
           </div>
           <div>
-            <p className="text-xs font-semibold text-slate-400">Low Stock Alert (&le;10)</p>
-            <p className="text-xl sm:text-2xl font-black text-amber-600">{lowStockCount}</p>
+            <p className="text-xs font-semibold text-ink-muted/80">Low Stock Alert (&le;10)</p>
+            <p className="text-xl sm:text-2xl font-semibold text-amber-600">{lowStockCount}</p>
           </div>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b border-slate-200 gap-4 text-xs font-bold uppercase tracking-wider">
+      <div className="flex border-b border-line gap-4 text-xs font-bold uppercase tracking-wider">
         <button
           onClick={() => setActiveAdminTab('products')}
           className={`pb-3 transition ${
             activeAdminTab === 'products'
-              ? 'text-indigo-600 border-b-2 border-indigo-600'
-              : 'text-slate-500 hover:text-slate-800'
+              ? 'text-brand border-b-2 border-brand'
+              : 'text-ink-muted hover:text-ink'
           }`}
         >
           Product Catalog ({products.length})
@@ -196,8 +196,8 @@ export const AdminDashboard: React.FC = () => {
           onClick={() => setActiveAdminTab('orders')}
           className={`pb-3 transition ${
             activeAdminTab === 'orders'
-              ? 'text-indigo-600 border-b-2 border-indigo-600'
-              : 'text-slate-500 hover:text-slate-800'
+              ? 'text-brand border-b-2 border-brand'
+              : 'text-ink-muted hover:text-ink'
           }`}
         >
           Customer Orders ({orders.length})
@@ -206,8 +206,8 @@ export const AdminDashboard: React.FC = () => {
           onClick={() => setActiveAdminTab('analytics')}
           className={`pb-3 transition ${
             activeAdminTab === 'analytics'
-              ? 'text-indigo-600 border-b-2 border-indigo-600'
-              : 'text-slate-500 hover:text-slate-800'
+              ? 'text-brand border-b-2 border-brand'
+              : 'text-ink-muted hover:text-ink'
           }`}
         >
           Sales & Analytics
@@ -218,21 +218,21 @@ export const AdminDashboard: React.FC = () => {
       {activeAdminTab === 'products' && (
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-slate-900">Manage Inventory</h2>
+            <h2 className="text-lg font-semibold text-ink">Manage inventory</h2>
             <button
               onClick={handleOpenAdd}
-              className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md flex items-center gap-1.5 transition"
+              className="bg-accent hover:bg-accent-dark text-white font-medium text-xs px-4 py-2.5 rounded-full flex items-center gap-1.5 transition"
             >
               <Plus className="w-4 h-4" />
               <span>Add New Product</span>
             </button>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+          <div className="bg-white rounded-card border border-line overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider">
+                  <tr className="bg-surface border-b border-line text-ink-muted/80 font-bold uppercase tracking-wider">
                     <th className="py-3 px-4">Product</th>
                     <th className="py-3 px-4">Category</th>
                     <th className="py-3 px-4">Price</th>
@@ -241,22 +241,22 @@ export const AdminDashboard: React.FC = () => {
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-line/70">
                   {products.map((p) => (
-                    <tr key={p.id} className="hover:bg-slate-50/80 transition">
+                    <tr key={p.id} className="hover:bg-surface/80 transition">
                       <td className="py-3 px-4 flex items-center gap-3">
                         <img
                           src={p.images[0]}
                           alt=""
-                          className="w-10 h-10 rounded-lg object-cover border border-slate-200"
+                          className="w-10 h-10 rounded-lg object-cover border border-line"
                         />
                         <div>
-                          <p className="font-bold text-slate-900">{p.name}</p>
-                          <p className="text-[11px] text-slate-400">ID: {p.id}</p>
+                          <p className="font-bold text-ink">{p.name}</p>
+                          <p className="text-[11px] text-ink-muted/80">ID: {p.id}</p>
                         </div>
                       </td>
-                      <td className="py-3 px-4 font-semibold text-slate-700">{p.category}</td>
-                      <td className="py-3 px-4 font-bold text-slate-900">${p.price.toFixed(2)}</td>
+                      <td className="py-3 px-4 font-semibold text-ink">{p.category}</td>
+                      <td className="py-3 px-4 font-bold text-ink">${p.price.toFixed(2)}</td>
                       <td className="py-3 px-4">
                         <span
                           className={`inline-block px-2 py-0.5 rounded-full font-bold text-[10px] ${
@@ -272,17 +272,17 @@ export const AdminDashboard: React.FC = () => {
                       </td>
                       <td className="py-3 px-4">
                         {p.badge ? (
-                          <span className="bg-slate-100 text-slate-700 font-semibold px-2 py-0.5 rounded text-[10px]">
+                          <span className="bg-surface text-ink font-semibold px-2 py-0.5 rounded text-[10px]">
                             {p.badge}
                           </span>
                         ) : (
-                          <span className="text-slate-300">—</span>
+                          <span className="text-line">—</span>
                         )}
                       </td>
                       <td className="py-3 px-4 text-right space-x-2">
                         <button
                           onClick={() => handleOpenEdit(p)}
-                          className="p-1.5 hover:bg-slate-100 text-slate-600 hover:text-indigo-600 rounded-lg transition"
+                          className="p-1.5 hover:bg-surface text-ink-muted hover:text-brand rounded-lg transition"
                           title="Edit Product"
                         >
                           <Edit2 className="w-4 h-4" />
@@ -293,7 +293,7 @@ export const AdminDashboard: React.FC = () => {
                               deleteProduct(p.id);
                             }
                           }}
-                          className="p-1.5 hover:bg-rose-50 text-slate-400 hover:text-rose-600 rounded-lg transition"
+                          className="p-1.5 hover:bg-rose-50 text-ink-muted/80 hover:text-rose-600 rounded-lg transition"
                           title="Delete Product"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -311,13 +311,13 @@ export const AdminDashboard: React.FC = () => {
       {/* TAB: Orders Management */}
       {activeAdminTab === 'orders' && (
         <div className="space-y-4">
-          <h2 className="text-lg font-bold text-slate-900">Manage Customer Orders</h2>
+          <h2 className="text-lg font-bold text-ink">Manage Customer Orders</h2>
 
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+          <div className="bg-white rounded-card border border-line overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
-                  <tr className="bg-slate-50 border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider">
+                  <tr className="bg-surface border-b border-line text-ink-muted/80 font-bold uppercase tracking-wider">
                     <th className="py-3 px-4">Order #</th>
                     <th className="py-3 px-4">Customer</th>
                     <th className="py-3 px-4">Date</th>
@@ -326,23 +326,23 @@ export const AdminDashboard: React.FC = () => {
                     <th className="py-3 px-4">Status & Update</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100">
+                <tbody className="divide-y divide-line/70">
                   {orders.map((ord) => (
-                    <tr key={ord.id} className="hover:bg-slate-50/80 transition">
-                      <td className="py-3 px-4 font-mono font-bold text-slate-900">
+                    <tr key={ord.id} className="hover:bg-surface/80 transition">
+                      <td className="py-3 px-4 font-mono font-bold text-ink">
                         {ord.orderNumber}
                       </td>
                       <td className="py-3 px-4">
-                        <p className="font-bold text-slate-900">{ord.shippingAddress.fullName}</p>
-                        <p className="text-[11px] text-slate-400">{ord.shippingAddress.city}, {ord.shippingAddress.state}</p>
+                        <p className="font-bold text-ink">{ord.shippingAddress.fullName}</p>
+                        <p className="text-[11px] text-ink-muted/80">{ord.shippingAddress.city}, {ord.shippingAddress.state}</p>
                       </td>
-                      <td className="py-3 px-4 text-slate-500">
+                      <td className="py-3 px-4 text-ink-muted">
                         {new Date(ord.date).toLocaleDateString()}
                       </td>
-                      <td className="py-3 px-4 font-semibold text-slate-700">
+                      <td className="py-3 px-4 font-semibold text-ink">
                         {ord.items.reduce((s, i) => s + i.quantity, 0)} items
                       </td>
-                      <td className="py-3 px-4 font-black text-slate-900">
+                      <td className="py-3 px-4 font-semibold text-ink">
                         ${ord.total.toFixed(2)}
                       </td>
                       <td className="py-3 px-4">
@@ -350,7 +350,7 @@ export const AdminDashboard: React.FC = () => {
                           value={ord.status}
                           onChange={(e) => updateOrderStatus(ord.id, e.target.value as OrderStatus)}
                           aria-label="Update order status"
-                          className="bg-slate-100 border border-slate-200 font-semibold rounded-lg px-2.5 py-1 text-xs outline-none focus:border-indigo-500 cursor-pointer"
+                          className="bg-surface border border-line font-semibold rounded-lg px-2.5 py-1 text-xs outline-none focus:border-brand-bright cursor-pointer"
                         >
                           <option value="Pending">Pending</option>
                           <option value="Processing">Processing</option>
@@ -371,8 +371,8 @@ export const AdminDashboard: React.FC = () => {
       {/* TAB: Sales & Analytics */}
       {activeAdminTab === 'analytics' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-            <h3 className="font-extrabold text-sm text-slate-900 uppercase tracking-wider">
+          <div className="bg-white p-6 rounded-card border border-line shadow-xs space-y-4">
+            <h3 className="font-semibold text-sm text-ink uppercase tracking-wider">
               Category Distribution
             </h3>
             <div className="space-y-3">
@@ -382,13 +382,13 @@ export const AdminDashboard: React.FC = () => {
 
                 return (
                   <div key={cat} className="space-y-1">
-                    <div className="flex justify-between text-xs font-bold text-slate-700">
+                    <div className="flex justify-between text-xs font-bold text-ink">
                       <span>{cat}</span>
                       <span>{count} products ({percentage}%)</span>
                     </div>
-                    <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="w-full h-2 bg-surface rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-indigo-600 rounded-full"
+                        className="h-full bg-brand rounded-full"
                         style={{ width: `${percentage}%` }}
                       />
                     </div>
@@ -398,30 +398,30 @@ export const AdminDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs space-y-4">
-            <h3 className="font-extrabold text-sm text-slate-900 uppercase tracking-wider">
+          <div className="bg-white p-6 rounded-card border border-line shadow-xs space-y-4">
+            <h3 className="font-semibold text-sm text-ink uppercase tracking-wider">
               Sales Performance
             </h3>
-            <div className="space-y-3 text-xs text-slate-600">
-              <div className="flex justify-between p-3 bg-slate-50 rounded-xl">
+            <div className="space-y-3 text-xs text-ink-muted">
+              <div className="flex justify-between p-3 bg-surface rounded-xl">
                 <span>Average Order Value (AOV)</span>
-                <span className="font-bold text-slate-900">${avgOrderValue.toFixed(2)}</span>
+                <span className="font-bold text-ink">${avgOrderValue.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between p-3 bg-slate-50 rounded-xl">
+              <div className="flex justify-between p-3 bg-surface rounded-xl">
                 <span>Completed Orders</span>
                 <span className="font-bold text-emerald-600">
                   {orders.filter((o) => o.status === 'Delivered' || o.status === 'Shipped').length}
                 </span>
               </div>
-              <div className="flex justify-between p-3 bg-slate-50 rounded-xl">
+              <div className="flex justify-between p-3 bg-surface rounded-xl">
                 <span>Processing in Warehouse</span>
                 <span className="font-bold text-amber-600">
                   {orders.filter((o) => o.status === 'Processing' || o.status === 'Pending').length}
                 </span>
               </div>
-              <div className="flex justify-between p-3 bg-slate-50 rounded-xl">
+              <div className="flex justify-between p-3 bg-surface rounded-xl">
                 <span>Return / Cancellation Rate</span>
-                <span className="font-bold text-slate-900">0.0%</span>
+                <span className="font-bold text-ink">0.0%</span>
               </div>
             </div>
           </div>
@@ -430,17 +430,17 @@ export const AdminDashboard: React.FC = () => {
 
       {/* Add / Edit Product Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-ink/45 backdrop-blur-sm backdrop-blur-xs flex items-center justify-center p-4">
           <div className="fixed inset-0" onClick={() => setIsAddModalOpen(false)} />
 
-          <div className="relative bg-white rounded-3xl max-w-lg w-full shadow-2xl p-6 sm:p-8 z-10 space-y-5">
-            <div className="flex justify-between items-center pb-3 border-b border-slate-100">
-              <h3 className="font-extrabold text-base text-slate-900">
+          <div className="relative bg-white rounded-panel max-w-lg w-full shadow-2xl p-6 sm:p-8 z-10 space-y-5">
+            <div className="flex justify-between items-center pb-3 border-b border-line/70">
+              <h3 className="font-semibold text-base text-ink">
                 {editingProduct ? 'Edit Product' : 'Add New Inventory Item'}
               </h3>
               <button
                 onClick={() => setIsAddModalOpen(false)}
-                className="p-1 rounded-lg hover:bg-slate-100 text-slate-400"
+                className="p-1 rounded-lg hover:bg-surface text-ink-muted/80"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -448,24 +448,24 @@ export const AdminDashboard: React.FC = () => {
 
             <form onSubmit={handleSaveProduct} className="space-y-3.5 text-xs">
               <div>
-                <label className="font-bold text-slate-700 block mb-1">Product Title</label>
+                <label className="font-bold text-ink block mb-1">Product Title</label>
                 <input
                   type="text"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Pro Wireless Gaming Mouse"
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-indigo-500"
+                  className="w-full p-2.5 rounded-xl border border-line outline-none focus:border-brand-bright"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Category</label>
+                  <label className="font-bold text-ink block mb-1">Category</label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-indigo-500 bg-white"
+                    className="w-full p-2.5 rounded-xl border border-line outline-none focus:border-brand-bright bg-white"
                   >
                     {CATEGORIES.filter((c) => c !== 'All').map((c) => (
                       <option key={c} value={c}>{c}</option>
@@ -474,11 +474,11 @@ export const AdminDashboard: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Promotional Badge</label>
+                  <label className="font-bold text-ink block mb-1">Promotional Badge</label>
                   <select
                     value={badge}
                     onChange={(e) => setBadge(e.target.value as any)}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-indigo-500 bg-white"
+                    className="w-full p-2.5 rounded-xl border border-line outline-none focus:border-brand-bright bg-white"
                   >
                     <option value="">None</option>
                     <option value="SALE">SALE</option>
@@ -491,7 +491,7 @@ export const AdminDashboard: React.FC = () => {
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Selling Price ($)</label>
+                  <label className="font-bold text-ink block mb-1">Selling Price ($)</label>
                   <input
                     type="number"
                     step="0.01"
@@ -499,56 +499,56 @@ export const AdminDashboard: React.FC = () => {
                     value={price}
                     onChange={(e) => setPrice(e.target.value)}
                     placeholder="99.99"
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-indigo-500"
+                    className="w-full p-2.5 rounded-xl border border-line outline-none focus:border-brand-bright"
                   />
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Original Price ($)</label>
+                  <label className="font-bold text-ink block mb-1">Original Price ($)</label>
                   <input
                     type="number"
                     step="0.01"
                     value={originalPrice}
                     onChange={(e) => setOriginalPrice(e.target.value)}
                     placeholder="129.99"
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-indigo-500"
+                    className="w-full p-2.5 rounded-xl border border-line outline-none focus:border-brand-bright"
                   />
                 </div>
 
                 <div>
-                  <label className="font-bold text-slate-700 block mb-1">Stock Count</label>
+                  <label className="font-bold text-ink block mb-1">Stock Count</label>
                   <input
                     type="number"
                     required
                     value={stock}
                     onChange={(e) => setStock(e.target.value)}
                     placeholder="25"
-                    className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-indigo-500"
+                    className="w-full p-2.5 rounded-xl border border-line outline-none focus:border-brand-bright"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 block mb-1">Image URL</label>
+                <label className="font-bold text-ink block mb-1">Image URL</label>
                 <input
                   type="url"
                   required
                   value={imageUrl}
                   onChange={(e) => setImageUrl(e.target.value)}
                   placeholder="https://images.unsplash.com/..."
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-indigo-500 font-mono text-[11px]"
+                  className="w-full p-2.5 rounded-xl border border-line outline-none focus:border-brand-bright font-mono text-[11px]"
                 />
               </div>
 
               <div>
-                <label className="font-bold text-slate-700 block mb-1">Description</label>
+                <label className="font-bold text-ink block mb-1">Description</label>
                 <textarea
                   rows={3}
                   required
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   placeholder="Detailed specifications and key selling points..."
-                  className="w-full p-2.5 rounded-xl border border-slate-200 outline-none focus:border-indigo-500"
+                  className="w-full p-2.5 rounded-xl border border-line outline-none focus:border-brand-bright"
                 />
               </div>
 
@@ -556,13 +556,13 @@ export const AdminDashboard: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl bg-slate-100 text-slate-700 font-bold"
+                  className="px-4 py-2.5 rounded-xl bg-surface text-ink font-bold"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold shadow-md transition"
+                  className="px-5 py-2.5 rounded-xl bg-brand hover:bg-brand-dark text-white font-bold shadow-md transition"
                 >
                   Save Product
                 </button>

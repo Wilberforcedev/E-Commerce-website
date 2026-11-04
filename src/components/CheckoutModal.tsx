@@ -150,26 +150,26 @@ export const CheckoutModal: React.FC = () => {
 
   return (
     <div
-      className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 flex items-center justify-center p-3 sm:p-6"
+      className="fixed inset-0 z-50 overflow-y-auto bg-ink/45 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6"
       role="dialog"
       aria-modal="true"
       aria-labelledby="checkout-modal-title"
     >
       <div className="fixed inset-0" onClick={() => !isProcessing && setIsCheckoutOpen(false)} />
 
-      <div className="relative bg-white rounded-lg max-w-4xl w-full border border-slate-200 shadow-xl overflow-hidden z-10 flex flex-col max-h-[92vh]">
+      <div className="relative bg-white rounded-panel max-w-4xl w-full border border-line shadow-xl overflow-hidden z-10 flex flex-col max-h-[92vh]">
         
         {/* Header */}
-        <div className="p-4 sm:px-6 border-b border-slate-200 flex items-center justify-between bg-white sticky top-0 z-20">
+        <div className="p-4 sm:px-6 border-b border-line flex items-center justify-between bg-white sticky top-0 z-20">
           <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded bg-slate-900 text-white flex items-center justify-center font-bold text-xs font-mono">
+            <div className="w-7 h-7 rounded bg-brand text-white flex items-center justify-center font-bold text-xs font-mono">
               NM
             </div>
             <div>
-              <h2 id="checkout-modal-title" className="font-bold text-sm sm:text-base text-slate-900">
+              <h2 id="checkout-modal-title" className="font-bold text-sm sm:text-base text-ink">
                 Order Checkout
               </h2>
-              <div className="flex items-center gap-1 text-[11px] text-slate-500">
+              <div className="flex items-center gap-1 text-[11px] text-ink-muted">
                 <Lock className="w-3 h-3 text-emerald-600" />
                 <span>Encrypted 256-Bit Transaction</span>
               </div>
@@ -180,30 +180,30 @@ export const CheckoutModal: React.FC = () => {
             onClick={() => setIsCheckoutOpen(false)}
             disabled={isProcessing}
             aria-label="Close checkout"
-            className="p-1.5 text-slate-400 hover:text-slate-800 rounded transition"
+            className="p-1.5 text-ink-muted/80 hover:text-ink rounded transition"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Stepper Progress */}
-        <div className="bg-slate-50 border-b border-slate-200 px-6 py-2.5 flex items-center justify-center gap-3 sm:gap-6 text-xs font-medium">
-          <div className={`flex items-center gap-1.5 ${step >= 1 ? 'text-slate-900 font-semibold' : 'text-slate-400'}`}>
-            <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${step >= 1 ? 'bg-slate-900 text-white' : 'bg-slate-200 text-slate-600'}`}>
+        <div className="bg-surface border-b border-line px-6 py-2.5 flex items-center justify-center gap-3 sm:gap-6 text-xs font-medium">
+          <div className={`flex items-center gap-1.5 ${step >= 1 ? 'text-ink font-semibold' : 'text-ink-muted/80'}`}>
+            <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${step >= 1 ? 'bg-brand text-white' : 'bg-line text-ink-muted'}`}>
               1
             </span>
             <span>Shipping</span>
           </div>
-          <span className="text-slate-300">/</span>
-          <div className={`flex items-center gap-1.5 ${step >= 2 ? 'text-slate-900 font-semibold' : 'text-slate-400'}`}>
-            <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${step >= 2 ? 'bg-slate-900 text-white' : 'bg-slate-200 text-slate-600'}`}>
+          <span className="text-line">/</span>
+          <div className={`flex items-center gap-1.5 ${step >= 2 ? 'text-ink font-semibold' : 'text-ink-muted/80'}`}>
+            <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${step >= 2 ? 'bg-brand text-white' : 'bg-line text-ink-muted'}`}>
               2
             </span>
             <span>Method</span>
           </div>
-          <span className="text-slate-300">/</span>
-          <div className={`flex items-center gap-1.5 ${step >= 3 ? 'text-slate-900 font-semibold' : 'text-slate-400'}`}>
-            <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${step >= 3 ? 'bg-slate-900 text-white' : 'bg-slate-200 text-slate-600'}`}>
+          <span className="text-line">/</span>
+          <div className={`flex items-center gap-1.5 ${step >= 3 ? 'text-ink font-semibold' : 'text-ink-muted/80'}`}>
+            <span className={`w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold ${step >= 3 ? 'bg-brand text-white' : 'bg-line text-ink-muted'}`}>
               3
             </span>
             <span>Payment</span>
@@ -242,13 +242,13 @@ export const CheckoutModal: React.FC = () => {
             {/* Step 1: Shipping Address with Inline Field Validation */}
             {step === 1 && (
               <form onSubmit={handleNextStep} noValidate className="space-y-3.5">
-                <h3 className="font-bold text-sm text-slate-900">
+                <h3 className="font-bold text-sm text-ink">
                   1. Shipping Information
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-medium text-slate-700 block mb-1">
+                    <label className="text-xs font-medium text-ink block mb-1">
                       Full Name <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -262,7 +262,7 @@ export const CheckoutModal: React.FC = () => {
                       className={`w-full text-xs p-2 rounded-md border outline-none transition ${
                         fieldErrors.fullName
                           ? 'border-rose-500 bg-rose-50/30 focus:border-rose-600'
-                          : 'border-slate-300 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600'
+                          : 'border-line focus:border-brand focus:ring-1 focus:ring-brand'
                       }`}
                     />
                     {fieldErrors.fullName && (
@@ -271,7 +271,7 @@ export const CheckoutModal: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="text-xs font-medium text-slate-700 block mb-1">
+                    <label className="text-xs font-medium text-ink block mb-1">
                       Email Address <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -285,7 +285,7 @@ export const CheckoutModal: React.FC = () => {
                       className={`w-full text-xs p-2 rounded-md border outline-none transition ${
                         fieldErrors.email
                           ? 'border-rose-500 bg-rose-50/30 focus:border-rose-600'
-                          : 'border-slate-300 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600'
+                          : 'border-line focus:border-brand focus:ring-1 focus:ring-brand'
                       }`}
                     />
                     {fieldErrors.email && (
@@ -296,7 +296,7 @@ export const CheckoutModal: React.FC = () => {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="text-xs font-medium text-slate-700 block mb-1">
+                    <label className="text-xs font-medium text-ink block mb-1">
                       Street Address <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -310,7 +310,7 @@ export const CheckoutModal: React.FC = () => {
                       className={`w-full text-xs p-2 rounded-md border outline-none transition ${
                         fieldErrors.address
                           ? 'border-rose-500 bg-rose-50/30 focus:border-rose-600'
-                          : 'border-slate-300 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600'
+                          : 'border-line focus:border-brand focus:ring-1 focus:ring-brand'
                       }`}
                     />
                     {fieldErrors.address && (
@@ -319,7 +319,7 @@ export const CheckoutModal: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="text-xs font-medium text-slate-700 block mb-1">
+                    <label className="text-xs font-medium text-ink block mb-1">
                       Phone Number <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -333,7 +333,7 @@ export const CheckoutModal: React.FC = () => {
                       className={`w-full text-xs p-2 rounded-md border outline-none transition ${
                         fieldErrors.phone
                           ? 'border-rose-500 bg-rose-50/30 focus:border-rose-600'
-                          : 'border-slate-300 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600'
+                          : 'border-line focus:border-brand focus:ring-1 focus:ring-brand'
                       }`}
                     />
                     {fieldErrors.phone && (
@@ -344,7 +344,7 @@ export const CheckoutModal: React.FC = () => {
 
                 <div className="grid grid-cols-3 gap-3">
                   <div>
-                    <label className="text-xs font-medium text-slate-700 block mb-1">
+                    <label className="text-xs font-medium text-ink block mb-1">
                       City <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -358,7 +358,7 @@ export const CheckoutModal: React.FC = () => {
                       className={`w-full text-xs p-2 rounded-md border outline-none transition ${
                         fieldErrors.city
                           ? 'border-rose-500 bg-rose-50/30 focus:border-rose-600'
-                          : 'border-slate-300 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600'
+                          : 'border-line focus:border-brand focus:ring-1 focus:ring-brand'
                       }`}
                     />
                     {fieldErrors.city && (
@@ -367,18 +367,18 @@ export const CheckoutModal: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="text-xs font-medium text-slate-700 block mb-1">State</label>
+                    <label className="text-xs font-medium text-ink block mb-1">State</label>
                     <input
                       type="text"
                       value={address.state}
                       onChange={(e) => setAddress({ ...address, state: e.target.value })}
                       placeholder="WA"
-                      className="w-full text-xs p-2 rounded-md border border-slate-300 outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600"
+                      className="w-full text-xs p-2 rounded-md border border-line outline-none focus:border-brand focus:ring-1 focus:ring-brand"
                     />
                   </div>
 
                   <div>
-                    <label className="text-xs font-medium text-slate-700 block mb-1">
+                    <label className="text-xs font-medium text-ink block mb-1">
                       Postal Code <span className="text-rose-500">*</span>
                     </label>
                     <input
@@ -392,7 +392,7 @@ export const CheckoutModal: React.FC = () => {
                       className={`w-full text-xs p-2 rounded-md border outline-none transition ${
                         fieldErrors.postalCode
                           ? 'border-rose-500 bg-rose-50/30 focus:border-rose-600'
-                          : 'border-slate-300 focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600'
+                          : 'border-line focus:border-brand focus:ring-1 focus:ring-brand'
                       }`}
                     />
                     {fieldErrors.postalCode && (
@@ -404,7 +404,7 @@ export const CheckoutModal: React.FC = () => {
                 <div className="pt-3 flex justify-end">
                   <button
                     type="submit"
-                    className="bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs px-5 py-2.5 rounded-md transition flex items-center gap-1.5"
+                    className="bg-accent hover:bg-accent-dark text-white font-semibold text-xs px-5 py-2.5 rounded-full transition flex items-center gap-1.5"
                   >
                     <span>Proceed to Delivery Method</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -416,7 +416,7 @@ export const CheckoutModal: React.FC = () => {
             {/* Step 2: Shipping Method */}
             {step === 2 && (
               <div className="space-y-4">
-                <h3 className="font-bold text-sm text-slate-900">
+                <h3 className="font-bold text-sm text-ink">
                   2. Select Delivery Service
                 </h3>
 
@@ -425,18 +425,18 @@ export const CheckoutModal: React.FC = () => {
                     onClick={() => setShippingMethod('standard')}
                     className={`flex items-center justify-between p-3.5 rounded-md border cursor-pointer transition ${
                       shippingMethod === 'standard'
-                        ? 'border-slate-900 bg-slate-50'
-                        : 'border-slate-200 hover:border-slate-300'
+                        ? 'border-brand bg-brand-soft'
+                        : 'border-line hover:border-line'
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <Truck className="w-4 h-4 text-slate-700" />
+                      <Truck className="w-4 h-4 text-ink" />
                       <div>
-                        <p className="font-semibold text-xs text-slate-900">Standard Ground Delivery</p>
-                        <p className="text-[11px] text-slate-500">Estimated 3-5 business days</p>
+                        <p className="font-semibold text-xs text-ink">Standard Ground Delivery</p>
+                        <p className="text-[11px] text-ink-muted">Estimated 3-5 business days</p>
                       </div>
                     </div>
-                    <span className="font-mono text-xs font-semibold text-slate-900">
+                    <span className="font-mono text-xs font-semibold text-ink">
                       {baseShipping === 0 ? 'FREE' : `$${baseShipping.toFixed(2)}`}
                     </span>
                   </label>
@@ -445,18 +445,18 @@ export const CheckoutModal: React.FC = () => {
                     onClick={() => setShippingMethod('express')}
                     className={`flex items-center justify-between p-3.5 rounded-md border cursor-pointer transition ${
                       shippingMethod === 'express'
-                        ? 'border-slate-900 bg-slate-50'
-                        : 'border-slate-200 hover:border-slate-300'
+                        ? 'border-brand bg-brand-soft'
+                        : 'border-line hover:border-line'
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <Truck className="w-4 h-4 text-slate-700" />
+                      <Truck className="w-4 h-4 text-ink" />
                       <div>
-                        <p className="font-semibold text-xs text-slate-900">FedEx Express Courier</p>
-                        <p className="text-[11px] text-slate-500">Estimated 2 business days</p>
+                        <p className="font-semibold text-xs text-ink">FedEx Express Courier</p>
+                        <p className="text-[11px] text-ink-muted">Estimated 2 business days</p>
                       </div>
                     </div>
-                    <span className="font-mono text-xs font-semibold text-slate-900">
+                    <span className="font-mono text-xs font-semibold text-ink">
                       +${(baseShipping + 9.99).toFixed(2)}
                     </span>
                   </label>
@@ -465,18 +465,18 @@ export const CheckoutModal: React.FC = () => {
                     onClick={() => setShippingMethod('overnight')}
                     className={`flex items-center justify-between p-3.5 rounded-md border cursor-pointer transition ${
                       shippingMethod === 'overnight'
-                        ? 'border-slate-900 bg-slate-50'
-                        : 'border-slate-200 hover:border-slate-300'
+                        ? 'border-brand bg-brand-soft'
+                        : 'border-line hover:border-line'
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <Truck className="w-4 h-4 text-slate-700" />
+                      <Truck className="w-4 h-4 text-ink" />
                       <div>
-                        <p className="font-semibold text-xs text-slate-900">Priority Overnight Air</p>
-                        <p className="text-[11px] text-slate-500">Next-day morning delivery</p>
+                        <p className="font-semibold text-xs text-ink">Priority Overnight Air</p>
+                        <p className="text-[11px] text-ink-muted">Next-day morning delivery</p>
                       </div>
                     </div>
-                    <span className="font-mono text-xs font-semibold text-slate-900">
+                    <span className="font-mono text-xs font-semibold text-ink">
                       +${(baseShipping + 19.99).toFixed(2)}
                     </span>
                   </label>
@@ -486,7 +486,7 @@ export const CheckoutModal: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setStep(1)}
-                    className="text-slate-600 hover:text-slate-900 font-medium text-xs flex items-center gap-1"
+                    className="text-ink-muted hover:text-ink font-medium text-xs flex items-center gap-1"
                   >
                     <ArrowLeft className="w-3.5 h-3.5" />
                     Back to Address
@@ -494,7 +494,7 @@ export const CheckoutModal: React.FC = () => {
 
                   <button
                     onClick={() => setStep(3)}
-                    className="bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs px-5 py-2.5 rounded-md transition flex items-center gap-1.5"
+                    className="bg-accent hover:bg-accent-dark text-white font-semibold text-xs px-5 py-2.5 rounded-full transition flex items-center gap-1.5"
                   >
                     <span>Proceed to Payment</span>
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -506,7 +506,7 @@ export const CheckoutModal: React.FC = () => {
             {/* Step 3: Payment with Inline Validation */}
             {step === 3 && (
               <form onSubmit={handleNextStep} noValidate className="space-y-4">
-                <h3 className="font-bold text-sm text-slate-900">
+                <h3 className="font-bold text-sm text-ink">
                   3. Payment Method
                 </h3>
 
@@ -517,8 +517,8 @@ export const CheckoutModal: React.FC = () => {
                     onClick={() => setPaymentType('card')}
                     className={`p-2.5 rounded-md border text-xs font-medium flex items-center justify-center gap-2 transition ${
                       paymentType === 'card'
-                        ? 'border-slate-900 bg-slate-900 text-white'
-                        : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                        ? 'border-brand bg-brand text-white'
+                        : 'border-line text-ink-muted hover:bg-surface'
                     }`}
                   >
                     <CreditCard className="w-3.5 h-3.5" />
@@ -530,8 +530,8 @@ export const CheckoutModal: React.FC = () => {
                     onClick={() => setPaymentType('paypal')}
                     className={`p-2.5 rounded-md border text-xs font-medium flex items-center justify-center gap-2 transition ${
                       paymentType === 'paypal'
-                        ? 'border-slate-900 bg-slate-900 text-white'
-                        : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                        ? 'border-brand bg-brand text-white'
+                        : 'border-line text-ink-muted hover:bg-surface'
                     }`}
                   >
                     <span className="font-mono font-bold">PayPal</span>
@@ -539,9 +539,9 @@ export const CheckoutModal: React.FC = () => {
                 </div>
 
                 {paymentType === 'card' ? (
-                  <div className="space-y-3 bg-slate-50 p-4 rounded-md border border-slate-200">
+                  <div className="space-y-3 bg-surface p-4 rounded-md border border-line">
                     <div>
-                      <label className="text-xs font-medium text-slate-700 block mb-1">
+                      <label className="text-xs font-medium text-ink block mb-1">
                         Card Number <span className="text-rose-500">*</span>
                       </label>
                       <input
@@ -553,7 +553,7 @@ export const CheckoutModal: React.FC = () => {
                         }}
                         placeholder="4242 4242 4242 4242"
                         className={`w-full bg-white text-xs p-2 rounded-md border font-mono outline-none ${
-                          fieldErrors.cardNumber ? 'border-rose-500' : 'border-slate-300 focus:border-indigo-600'
+                          fieldErrors.cardNumber ? 'border-rose-500' : 'border-line focus:border-brand'
                         }`}
                       />
                       {fieldErrors.cardNumber && (
@@ -563,7 +563,7 @@ export const CheckoutModal: React.FC = () => {
 
                     <div className="grid grid-cols-2 gap-3">
                       <div>
-                        <label className="text-xs font-medium text-slate-700 block mb-1">
+                        <label className="text-xs font-medium text-ink block mb-1">
                           Expiry <span className="text-rose-500">*</span>
                         </label>
                         <input
@@ -575,7 +575,7 @@ export const CheckoutModal: React.FC = () => {
                           }}
                           placeholder="MM/YY"
                           className={`w-full bg-white text-xs p-2 rounded-md border font-mono outline-none ${
-                            fieldErrors.cardExpiry ? 'border-rose-500' : 'border-slate-300 focus:border-indigo-600'
+                            fieldErrors.cardExpiry ? 'border-rose-500' : 'border-line focus:border-brand'
                           }`}
                         />
                         {fieldErrors.cardExpiry && (
@@ -584,7 +584,7 @@ export const CheckoutModal: React.FC = () => {
                       </div>
 
                       <div>
-                        <label className="text-xs font-medium text-slate-700 block mb-1">
+                        <label className="text-xs font-medium text-ink block mb-1">
                           CVC <span className="text-rose-500">*</span>
                         </label>
                         <input
@@ -596,7 +596,7 @@ export const CheckoutModal: React.FC = () => {
                           }}
                           placeholder="123"
                           className={`w-full bg-white text-xs p-2 rounded-md border font-mono outline-none ${
-                            fieldErrors.cardCvc ? 'border-rose-500' : 'border-slate-300 focus:border-indigo-600'
+                            fieldErrors.cardCvc ? 'border-rose-500' : 'border-line focus:border-brand'
                           }`}
                         />
                         {fieldErrors.cardCvc && (
@@ -606,9 +606,9 @@ export const CheckoutModal: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                  <div className="p-5 bg-slate-50 rounded-md border border-slate-200 text-center space-y-1">
-                    <p className="text-xs font-semibold text-slate-800">PayPal Express Checkout</p>
-                    <p className="text-[11px] text-slate-500">
+                  <div className="p-5 bg-surface rounded-md border border-line text-center space-y-1">
+                    <p className="text-xs font-semibold text-ink">PayPal Express Checkout</p>
+                    <p className="text-[11px] text-ink-muted">
                       Transaction will be settled using your connected account ({address.email || 'guest'}).
                     </p>
                   </div>
@@ -618,7 +618,7 @@ export const CheckoutModal: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setStep(2)}
-                    className="text-slate-600 hover:text-slate-900 font-medium text-xs flex items-center gap-1"
+                    className="text-ink-muted hover:text-ink font-medium text-xs flex items-center gap-1"
                   >
                     <ArrowLeft className="w-3.5 h-3.5" />
                     Back
@@ -627,7 +627,7 @@ export const CheckoutModal: React.FC = () => {
                   <button
                     type="submit"
                     disabled={isProcessing}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs px-5 py-2.5 rounded-md transition flex items-center gap-2 disabled:opacity-50"
+                    className="bg-brand hover:bg-brand-dark text-white font-semibold text-xs px-5 py-2.5 rounded-md transition flex items-center gap-2 disabled:opacity-50"
                   >
                     {isProcessing ? (
                       <>
@@ -647,9 +647,9 @@ export const CheckoutModal: React.FC = () => {
           </div>
 
           {/* Right Summary Column */}
-          <div className="lg:col-span-5 bg-slate-50 rounded-lg p-4 border border-slate-200 flex flex-col justify-between space-y-4">
+          <div className="lg:col-span-5 bg-surface rounded-lg p-4 border border-line flex flex-col justify-between space-y-4">
             <div>
-              <h4 className="font-semibold text-xs uppercase tracking-wider text-slate-500 mb-3">
+              <h4 className="font-semibold text-xs uppercase tracking-wider text-ink-muted mb-3">
                 Cart Items ({cart.length})
               </h4>
 
@@ -660,13 +660,13 @@ export const CheckoutModal: React.FC = () => {
                     <img
                       src={item.product.images[0]}
                       alt={item.product.name}
-                      className="w-10 h-10 rounded object-cover border border-slate-200 shrink-0 bg-white"
+                      className="w-10 h-10 rounded object-cover border border-line shrink-0 bg-white"
                     />
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-slate-900 truncate">{item.product.name}</p>
-                      <p className="text-slate-500 text-[11px] font-mono">Qty: {item.quantity}</p>
+                      <p className="font-medium text-ink truncate">{item.product.name}</p>
+                      <p className="text-ink-muted text-[11px] font-mono">Qty: {item.quantity}</p>
                     </div>
-                    <span className="font-mono text-slate-900">
+                    <span className="font-mono text-ink">
                       ${(item.product.price * item.quantity).toFixed(2)}
                     </span>
                   </div>
@@ -674,14 +674,14 @@ export const CheckoutModal: React.FC = () => {
               </div>
 
               {/* Price Calculation breakdown */}
-              <div className="space-y-1.5 pt-3 mt-3 border-t border-slate-200 text-xs text-slate-600">
+              <div className="space-y-1.5 pt-3 mt-3 border-t border-line text-xs text-ink-muted">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span className="font-mono text-slate-800">${cartSubtotal.toFixed(2)}</span>
+                  <span className="font-mono text-ink">${cartSubtotal.toFixed(2)}</span>
                 </div>
 
                 {cartDiscount > 0 && (
-                  <div className="flex justify-between text-slate-700">
+                  <div className="flex justify-between text-ink">
                     <span>Discount</span>
                     <span className="font-mono">-${cartDiscount.toFixed(2)}</span>
                   </div>
@@ -689,25 +689,25 @@ export const CheckoutModal: React.FC = () => {
 
                 <div className="flex justify-between">
                   <span>Shipping</span>
-                  <span className="font-mono text-slate-800">
+                  <span className="font-mono text-ink">
                     {shippingCost === 0 ? 'FREE' : `$${shippingCost.toFixed(2)}`}
                   </span>
                 </div>
 
                 <div className="flex justify-between">
                   <span>Tax (8%)</span>
-                  <span className="font-mono text-slate-800">${estimatedTax.toFixed(2)}</span>
+                  <span className="font-mono text-ink">${estimatedTax.toFixed(2)}</span>
                 </div>
 
-                <div className="flex justify-between pt-2 border-t border-slate-200 text-xs font-bold text-slate-900">
+                <div className="flex justify-between pt-2 border-t border-line text-xs font-bold text-ink">
                   <span>Total Amount</span>
-                  <span className="font-mono text-indigo-600">${finalTotal.toFixed(2)}</span>
+                  <span className="font-mono text-brand">${finalTotal.toFixed(2)}</span>
                 </div>
               </div>
             </div>
 
-            <div className="p-2.5 bg-white rounded border border-slate-200 flex items-center gap-2 text-[11px] text-slate-600">
-              <CheckCircle2 className="w-3.5 h-3.5 text-slate-700 shrink-0" />
+            <div className="p-2.5 bg-white rounded border border-line flex items-center gap-2 text-[11px] text-ink-muted">
+              <CheckCircle2 className="w-3.5 h-3.5 text-ink shrink-0" />
               <span>Full warranty and 30-day testing window included.</span>
             </div>
           </div>

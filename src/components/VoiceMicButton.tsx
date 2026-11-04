@@ -28,12 +28,12 @@ export const VoiceMicButton: React.FC<VoiceMicButtonProps> = ({
         onClick={() => setIsOpen(true)}
         className={
           buttonClassName ||
-          'p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-full transition flex items-center justify-center'
+          'p-2 text-ink-muted/80 hover:text-brand hover:bg-brand-soft rounded-full transition flex items-center justify-center'
         }
         title={tooltip}
         aria-label={tooltip}
       >
-        <Mic className="w-4 h-4 text-indigo-600" />
+        <Mic className="w-4 h-4 text-brand" />
       </button>
 
       <AudioTranscribeModal

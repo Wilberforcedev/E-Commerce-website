@@ -23,24 +23,24 @@ export const OrderHistoryView: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-8 animate-fade-in">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-line">
         <div>
           <button
             onClick={() => setActiveView('shop')}
-            className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-indigo-600 mb-2 transition"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-ink-muted hover:text-brand mb-2 transition"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Store</span>
           </button>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-full bg-brand-soft text-brand flex items-center justify-center">
               <Package className="w-5 h-5" />
             </div>
             <div>
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-                Order History & Receipts
+              <h1 className="text-[32px] font-medium text-ink tracking-[-0.025em] leading-tight">
+                Order history
               </h1>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-ink-muted">
                 Track your active shipments and view invoices
               </p>
             </div>
@@ -49,10 +49,10 @@ export const OrderHistoryView: React.FC = () => {
 
         <button
           onClick={() => setIsOrderTrackerOpen(true)}
-          className="bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs px-4 py-2.5 rounded-xl shadow-md transition flex items-center gap-1.5 self-start sm:self-center"
+          className="bg-accent hover:bg-accent-dark text-white font-bold text-xs px-4 py-2.5 rounded-full shadow-md transition flex items-center gap-1.5 self-start sm:self-center"
         >
-          <Truck className="w-4 h-4 text-emerald-400" />
-          <span>Track by Tracking Number</span>
+          <Truck className="w-4 h-4" />
+          <span>Track by tracking number</span>
         </button>
       </div>
 
@@ -61,37 +61,37 @@ export const OrderHistoryView: React.FC = () => {
           {orders.map((order) => (
             <div
               key={order.id}
-              className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-xs hover:border-indigo-200 transition"
+              className="bg-white rounded-card border border-line overflow-hidden hover:border-brand-line transition"
             >
               {/* Order Header */}
-              <div className="bg-slate-50/80 p-4 sm:p-5 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4 text-xs">
+              <div className="bg-surface/80 p-4 sm:p-5 border-b border-line/70 flex flex-wrap items-center justify-between gap-4 text-xs">
                 <div className="flex flex-wrap items-center gap-4 sm:gap-6">
                   <div>
-                    <p className="text-slate-400 text-[11px] font-bold uppercase tracking-wider">Order Number</p>
-                    <p className="font-extrabold text-sm text-slate-900 font-mono">{order.orderNumber}</p>
+                    <p className="text-ink-muted/80 text-[11px] font-bold uppercase tracking-wider">Order Number</p>
+                    <p className="font-semibold text-sm text-ink font-mono">{order.orderNumber}</p>
                   </div>
 
                   <div>
-                    <p className="text-slate-400 text-[11px] font-bold uppercase tracking-wider">Date Placed</p>
-                    <p className="font-semibold text-slate-800">{new Date(order.date).toLocaleDateString()}</p>
+                    <p className="text-ink-muted/80 text-[11px] font-bold uppercase tracking-wider">Date Placed</p>
+                    <p className="font-semibold text-ink">{new Date(order.date).toLocaleDateString()}</p>
                   </div>
 
                   <div>
-                    <p className="text-slate-400 text-[11px] font-bold uppercase tracking-wider">Total Amount</p>
-                    <p className="font-black text-slate-900 text-sm">${order.total.toFixed(2)}</p>
+                    <p className="text-ink-muted/80 text-[11px] font-bold uppercase tracking-wider">Total Amount</p>
+                    <p className="font-semibold text-ink text-sm">${order.total.toFixed(2)}</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider ${
+                    className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${
                       order.status === 'Delivered'
                         ? 'bg-emerald-100 text-emerald-800'
                         : order.status === 'Shipped'
-                        ? 'bg-indigo-100 text-indigo-800'
+                        ? 'bg-brand-soft text-brand-dark'
                         : order.status === 'Processing'
                         ? 'bg-amber-100 text-amber-800'
-                        : 'bg-slate-200 text-slate-800'
+                        : 'bg-line text-ink'
                     }`}
                   >
                     {order.status}
@@ -99,7 +99,7 @@ export const OrderHistoryView: React.FC = () => {
 
                   <button
                     onClick={() => setIsOrderTrackerOpen(true)}
-                    className="p-2 hover:bg-slate-200 rounded-xl text-slate-600 transition"
+                    className="p-2 hover:bg-line/60 rounded-xl text-ink-muted transition"
                     title="Track Order"
                   >
                     <ChevronRight className="w-5 h-5" />
@@ -108,27 +108,27 @@ export const OrderHistoryView: React.FC = () => {
               </div>
 
               {/* Order Items */}
-              <div className="p-4 sm:p-6 divide-y divide-slate-100">
+              <div className="p-4 sm:p-6 divide-y divide-line/70">
                 {order.items.map((item, idx) => (
                   <div key={idx} className="py-3.5 first:pt-0 last:pb-0 flex items-center justify-between gap-4 text-xs">
                     <div className="flex items-center gap-3.5 min-w-0">
                       <img
                         src={item.product.images[0]}
                         alt={item.product.name}
-                        className="w-14 h-14 rounded-xl object-cover border border-slate-200 shrink-0 bg-slate-50"
+                        className="w-14 h-14 rounded-xl object-cover border border-line shrink-0 bg-surface"
                       />
                       <div className="min-w-0">
-                        <p className="font-bold text-slate-900 text-sm truncate">{item.product.name}</p>
-                        <p className="text-slate-400 text-[11px]">
+                        <p className="font-bold text-ink text-sm truncate">{item.product.name}</p>
+                        <p className="text-ink-muted/80 text-[11px]">
                           Category: {item.product.category} • Qty: {item.quantity}
                         </p>
-                        <p className="text-indigo-600 font-extrabold mt-0.5">
+                        <p className="text-brand font-semibold mt-0.5">
                           ${item.product.price.toFixed(2)} each
                         </p>
                       </div>
                     </div>
 
-                    <span className="font-black text-slate-900 text-sm shrink-0">
+                    <span className="font-semibold text-ink text-sm shrink-0">
                       ${(item.product.price * item.quantity).toFixed(2)}
                     </span>
                   </div>
@@ -136,25 +136,25 @@ export const OrderHistoryView: React.FC = () => {
               </div>
 
               {/* Order Footer Info */}
-              <div className="bg-slate-50/50 p-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-4 text-xs text-slate-600">
+              <div className="bg-surface/50 p-4 border-t border-line/70 flex flex-wrap items-center justify-between gap-4 text-xs text-ink-muted">
                 <div className="flex items-center gap-2">
-                  <Truck className="w-4 h-4 text-indigo-600 shrink-0" />
+                  <Truck className="w-4 h-4 text-brand shrink-0" />
                   <span>
-                    Carrier: <strong>{order.carrier || 'FedEx'}</strong> • Tracking: <span className="font-mono text-indigo-700">{order.trackingNumber || 'Pending'}</span>
+                    Carrier: <strong>{order.carrier || 'FedEx'}</strong> • Tracking: <span className="font-mono text-brand">{order.trackingNumber || 'Pending'}</span>
                   </span>
                 </div>
 
                 <div className="flex gap-2">
                   <button
                     onClick={() => handleReorder(order.items)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl font-bold text-slate-700 transition"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-line hover:bg-surface rounded-xl font-bold text-ink transition"
                   >
-                    <RotateCcw className="w-3.5 h-3.5 text-indigo-600" />
+                    <RotateCcw className="w-3.5 h-3.5 text-brand" />
                     <span>Buy Again</span>
                   </button>
                   <button
                     onClick={() => setIsOrderTrackerOpen(true)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 rounded-xl font-bold text-white transition shadow-xs"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-brand hover:bg-brand-dark rounded-xl font-bold text-white transition shadow-xs"
                   >
                     <span>Track Live</span>
                   </button>
@@ -164,19 +164,19 @@ export const OrderHistoryView: React.FC = () => {
           ))}
         </div>
       ) : (
-        <div className="bg-white rounded-3xl border border-slate-200 p-12 text-center max-w-md mx-auto space-y-4">
-          <div className="w-16 h-16 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+        <div className="bg-white rounded-panel border border-line p-12 text-center max-w-md mx-auto space-y-4">
+          <div className="w-16 h-16 rounded-full bg-surface text-ink-muted/80 flex items-center justify-center mx-auto">
             <Package className="w-8 h-8" />
           </div>
           <div>
-            <h3 className="font-extrabold text-lg text-slate-800">No orders placed yet</h3>
-            <p className="text-xs text-slate-500 mt-1">
+            <h3 className="font-semibold text-lg text-ink">No orders placed yet</h3>
+            <p className="text-xs text-ink-muted mt-1">
               When you complete checkout, your order receipts and package tracking will appear right here.
             </p>
           </div>
           <button
             onClick={() => setActiveView('shop')}
-            className="bg-indigo-600 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow hover:bg-indigo-700 transition"
+            className="bg-brand text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow hover:bg-brand transition"
           >
             Start Browsing
           </button>

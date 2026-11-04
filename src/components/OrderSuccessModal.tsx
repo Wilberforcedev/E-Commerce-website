@@ -33,67 +33,67 @@ export const OrderSuccessModal: React.FC = () => {
 
   return (
     <div
-      className="fixed inset-0 z-50 overflow-y-auto bg-slate-950/70 flex items-center justify-center p-3 sm:p-6"
+      className="fixed inset-0 z-50 overflow-y-auto bg-ink/45 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6"
       role="dialog"
       aria-modal="true"
       aria-labelledby="order-success-title"
     >
       <div className="fixed inset-0" onClick={handleDone} />
 
-      <div className="relative bg-white rounded-lg max-w-lg w-full border border-slate-200 shadow-xl overflow-hidden z-10 p-6 sm:p-7 space-y-5 text-center">
+      <div className="relative bg-white rounded-panel max-w-lg w-full border border-line shadow-xl overflow-hidden z-10 p-6 sm:p-7 space-y-5 text-center">
         
         {/* Success Icon */}
-        <div className="w-12 h-12 bg-slate-100 text-slate-900 rounded-full flex items-center justify-center mx-auto">
+        <div className="w-12 h-12 bg-surface text-ink rounded-full flex items-center justify-center mx-auto">
           <CheckCircle className="w-6 h-6" />
         </div>
 
         <div>
-          <span className="text-[11px] font-mono font-medium uppercase tracking-wider text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded">
+          <span className="text-[11px] font-mono font-medium uppercase tracking-wider text-ink-muted bg-surface px-2.5 py-0.5 rounded">
             Confirmed & Queued
           </span>
-          <h2 id="order-success-title" className="text-xl font-bold text-slate-900 mt-2">
+          <h2 id="order-success-title" className="text-xl font-bold text-ink mt-2">
             Order Confirmed
           </h2>
-          <p className="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
-            Order dispatch receipt and tracking details sent to <strong className="text-slate-800">{order.shippingAddress.email}</strong>
+          <p className="text-xs text-ink-muted mt-1 max-w-sm mx-auto">
+            Order dispatch receipt and tracking details sent to <strong className="text-ink">{order.shippingAddress.email}</strong>
           </p>
         </div>
 
         {/* Order Details Card */}
-        <div className="bg-slate-50 rounded-md p-4 border border-slate-200 text-left space-y-3 text-xs">
-          <div className="flex justify-between items-center pb-2.5 border-b border-slate-200">
+        <div className="bg-surface rounded-md p-4 border border-line text-left space-y-3 text-xs">
+          <div className="flex justify-between items-center pb-2.5 border-b border-line">
             <div>
-              <p className="text-slate-400 text-[11px] font-mono">Order Number</p>
-              <p className="font-mono font-bold text-xs sm:text-sm text-slate-900">{order.orderNumber}</p>
+              <p className="text-ink-muted/80 text-[11px] font-mono">Order Number</p>
+              <p className="font-mono font-bold text-xs sm:text-sm text-ink">{order.orderNumber}</p>
             </div>
             <div className="text-right">
-              <p className="text-slate-400 text-[11px]">Total Paid</p>
-              <p className="font-mono font-bold text-xs sm:text-sm text-slate-900">${order.total.toFixed(2)}</p>
+              <p className="text-ink-muted/80 text-[11px]">Total Paid</p>
+              <p className="font-mono font-bold text-xs sm:text-sm text-ink">${order.total.toFixed(2)}</p>
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3 font-mono">
             <div className="flex items-start gap-2">
-              <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
+              <Calendar className="w-3.5 h-3.5 text-ink-muted/80 shrink-0 mt-0.5" />
               <div>
-                <p className="text-slate-400 text-[10px] uppercase">Estimated Arrival</p>
-                <p className="text-xs font-semibold text-slate-800">{order.estimatedDelivery}</p>
+                <p className="text-ink-muted/80 text-[10px] uppercase">Estimated Arrival</p>
+                <p className="text-xs font-semibold text-ink">{order.estimatedDelivery}</p>
               </div>
             </div>
 
             <div className="flex items-start gap-2">
-              <Truck className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
+              <Truck className="w-3.5 h-3.5 text-ink-muted/80 shrink-0 mt-0.5" />
               <div>
-                <p className="text-slate-400 text-[10px] uppercase">Courier</p>
-                <p className="text-xs font-semibold text-slate-800">{order.carrier || 'DHL Express'}</p>
+                <p className="text-ink-muted/80 text-[10px] uppercase">Courier</p>
+                <p className="text-xs font-semibold text-ink">{order.carrier || 'DHL Express'}</p>
               </div>
             </div>
           </div>
 
-          <div className="pt-2 border-t border-slate-200 flex items-start gap-2">
-            <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
-            <div className="text-slate-600 text-xs">
-              <p className="font-semibold text-slate-800">Destination:</p>
+          <div className="pt-2 border-t border-line flex items-start gap-2">
+            <MapPin className="w-3.5 h-3.5 text-ink-muted/80 shrink-0 mt-0.5" />
+            <div className="text-ink-muted text-xs">
+              <p className="font-semibold text-ink">Destination:</p>
               <p>{order.shippingAddress.fullName}</p>
               <p>{order.shippingAddress.address}, {order.shippingAddress.city}, {order.shippingAddress.state} {order.shippingAddress.postalCode}</p>
             </div>
@@ -104,7 +104,7 @@ export const OrderSuccessModal: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
           <button
             onClick={handleTrack}
-            className="w-full py-2.5 bg-white hover:bg-slate-50 text-slate-800 font-semibold text-xs rounded-md border border-slate-300 flex items-center justify-center gap-1.5 transition"
+            className="w-full py-2.5 bg-white hover:bg-surface text-ink font-semibold text-xs rounded-md border border-line flex items-center justify-center gap-1.5 transition"
           >
             <Package className="w-3.5 h-3.5" />
             <span>Track Order</span>
@@ -112,7 +112,7 @@ export const OrderSuccessModal: React.FC = () => {
 
           <button
             onClick={handleDone}
-            className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-semibold text-xs rounded-md transition flex items-center justify-center gap-1.5"
+            className="w-full py-2.5 bg-accent hover:bg-accent-dark text-white font-semibold text-xs rounded-full transition flex items-center justify-center gap-1.5"
           >
             <span>Continue Shopping</span>
             <ArrowRight className="w-3.5 h-3.5" />

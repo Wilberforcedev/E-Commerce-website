@@ -40,9 +40,9 @@ export const RecentSearches: React.FC<RecentSearchesProps> = ({
   // 1. Variant for Empty Search Results State
   if (variant === 'empty-state') {
     return (
-      <div className={`mt-5 pt-4 border-t border-slate-100 ${className}`}>
-        <div className="flex items-center justify-center gap-1.5 text-xs text-slate-500 mb-2.5 font-medium">
-          <Clock className="w-3.5 h-3.5 text-slate-400" />
+      <div className={`mt-5 pt-4 border-t border-line/70 ${className}`}>
+        <div className="flex items-center justify-center gap-1.5 text-xs text-ink-muted mb-2.5 font-medium">
+          <Clock className="w-3.5 h-3.5 text-ink-muted/80" />
           <span>Try one of your recent searches:</span>
         </div>
         <div className="flex flex-wrap items-center justify-center gap-2">
@@ -51,9 +51,9 @@ export const RecentSearches: React.FC<RecentSearchesProps> = ({
               key={term}
               type="button"
               onClick={() => handleSelectSearch(term)}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200 hover:border-slate-300 transition shadow-xs"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-surface hover:bg-line/60 text-ink border border-line hover:border-line transition shadow-xs"
             >
-              <Search className="w-3 h-3 text-slate-500" />
+              <Search className="w-3 h-3 text-ink-muted" />
               <span>{term}</span>
             </button>
           ))}
@@ -65,16 +65,16 @@ export const RecentSearches: React.FC<RecentSearchesProps> = ({
   // 2. Variant for Sidebar Filters (Desktop & Mobile Drawer)
   if (variant === 'sidebar') {
     return (
-      <div className={`space-y-2 pt-3 border-t border-slate-100 ${className}`}>
+      <div className={`space-y-2 pt-3 border-t border-line/70 ${className}`}>
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-            <Clock className="w-3 h-3 text-slate-400" />
+          <div className="flex items-center gap-1.5 text-[11px] font-semibold text-ink-muted uppercase tracking-wider">
+            <Clock className="w-3 h-3 text-ink-muted/80" />
             <span>Recent Searches</span>
           </div>
           <button
             type="button"
             onClick={clearRecentSearches}
-            className="text-[10px] text-slate-400 hover:text-slate-700 transition underline underline-offset-2"
+            className="text-[10px] text-ink-muted/80 hover:text-ink transition underline underline-offset-2"
             title="Clear recent searches history"
           >
             Clear
@@ -88,8 +88,8 @@ export const RecentSearches: React.FC<RecentSearchesProps> = ({
                 key={term}
                 className={`group flex items-center justify-between px-2.5 py-1.5 rounded-md text-xs transition cursor-pointer ${
                   isActive
-                    ? 'bg-slate-900 text-white font-medium shadow-xs'
-                    : 'bg-slate-50 hover:bg-slate-100 text-slate-700'
+                    ? 'bg-brand text-white font-medium shadow-xs'
+                    : 'bg-surface hover:bg-surface text-ink'
                 }`}
                 onClick={() => handleSelectSearch(term)}
                 role="button"
@@ -102,7 +102,7 @@ export const RecentSearches: React.FC<RecentSearchesProps> = ({
                 }}
               >
                 <div className="flex items-center gap-2 truncate">
-                  <Search className={`w-3 h-3 shrink-0 ${isActive ? 'text-slate-300' : 'text-slate-400'}`} />
+                  <Search className={`w-3 h-3 shrink-0 ${isActive ? 'text-white/70' : 'text-ink-muted/80'}`} />
                   <span className="truncate">{term}</span>
                 </div>
                 <button
@@ -113,8 +113,8 @@ export const RecentSearches: React.FC<RecentSearchesProps> = ({
                   }}
                   className={`p-0.5 rounded transition ml-1 shrink-0 ${
                     isActive
-                      ? 'text-slate-400 hover:text-white hover:bg-slate-800'
-                      : 'text-slate-400 hover:text-slate-700 hover:bg-slate-200'
+                      ? 'text-ink-muted/80 hover:text-white hover:bg-brand-dark'
+                      : 'text-ink-muted/80 hover:text-ink hover:bg-line/60'
                   }`}
                   aria-label={`Remove "${term}" from recent searches`}
                   title="Remove query"
@@ -135,8 +135,8 @@ export const RecentSearches: React.FC<RecentSearchesProps> = ({
       className={`flex flex-wrap items-center gap-2 ${className}`}
       aria-label="Recent search queries"
     >
-      <div className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
-        <Clock className="w-3.5 h-3.5 text-slate-400" />
+      <div className="flex items-center gap-1.5 text-xs font-medium text-ink-muted">
+        <Clock className="w-3.5 h-3.5 text-ink-muted/80" />
         <span className="hidden sm:inline">Recent searches:</span>
         <span className="sm:hidden">Recent:</span>
       </div>
@@ -150,8 +150,8 @@ export const RecentSearches: React.FC<RecentSearchesProps> = ({
               onClick={() => handleSelectSearch(term)}
               className={`group inline-flex items-center gap-1.5 pl-2.5 pr-1.5 py-1 rounded-full text-xs font-medium border transition cursor-pointer select-none ${
                 isActive
-                  ? 'bg-slate-900 border-slate-900 text-white shadow-xs'
-                  : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'
+                  ? 'bg-ink border-ink text-white shadow-xs'
+                  : 'bg-white hover:bg-surface border-line text-ink hover:border-line'
               }`}
               title={`Quick search for "${term}"`}
               role="button"
@@ -163,7 +163,7 @@ export const RecentSearches: React.FC<RecentSearchesProps> = ({
                 }
               }}
             >
-              <Search className={`w-3 h-3 ${isActive ? 'text-slate-300' : 'text-slate-400'}`} />
+              <Search className={`w-3 h-3 ${isActive ? 'text-white/70' : 'text-ink-muted/80'}`} />
               <span className="max-w-[130px] truncate">{term}</span>
               <button
                 type="button"
@@ -173,8 +173,8 @@ export const RecentSearches: React.FC<RecentSearchesProps> = ({
                 }}
                 className={`p-0.5 rounded-full transition ${
                   isActive
-                    ? 'text-slate-300 hover:text-white hover:bg-slate-800'
-                    : 'text-slate-400 hover:text-slate-700 hover:bg-slate-200'
+                    ? 'text-white/70 hover:text-white hover:bg-brand-dark'
+                    : 'text-ink-muted/80 hover:text-ink hover:bg-line/60'
                 }`}
                 aria-label={`Remove "${term}" from recent searches`}
                 title="Remove"
@@ -188,7 +188,7 @@ export const RecentSearches: React.FC<RecentSearchesProps> = ({
         <button
           type="button"
           onClick={clearRecentSearches}
-          className="text-[11px] text-slate-400 hover:text-slate-600 transition underline underline-offset-2 ml-1"
+          className="text-[11px] text-ink-muted/80 hover:text-ink-muted transition underline underline-offset-2 ml-1"
           title="Clear all recent searches"
         >
           Clear
